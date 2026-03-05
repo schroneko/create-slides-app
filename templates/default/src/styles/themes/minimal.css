@@ -1,0 +1,18 @@
+[data-theme="minimal"] {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --color-bg: #fafafa;
+  --color-text: #333333;
+  --color-heading: #111111;
+  --color-accent: #2563eb;
+  --color-code-bg: #f0f0f0;
+  --slide-padding: 5rem;
+}
+
+[data-theme="minimal"] .slide h1 {
+  letter-spacing: -0.02em;
+}
+
+[data-theme="minimal"] .slide:first-child {
+  text-align: center;
+  align-items: center;
+}

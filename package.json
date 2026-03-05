@@ -1,0 +1,37 @@
+{
+  "name": "create-slides-app",
+  "version": "0.1.0",
+  "description": "Create a Markdown-based slide presentation app with React",
+  "keywords": [
+    "cli",
+    "markdown",
+    "presentation",
+    "react",
+    "slides"
+  ],
+  "license": "MIT",
+  "bin": {
+    "create-slides-app": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --dts",
+    "dev": "tsup src/cli.ts --format esm --watch"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
