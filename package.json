@@ -10,6 +10,14 @@
     "slides"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schroneko/create-slides-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/schroneko/create-slides-app/issues"
+  },
+  "homepage": "https://github.com/schroneko/create-slides-app#readme",
   "bin": {
     "create-slides-app": "./dist/cli.js"
   },
@@ -20,7 +28,9 @@
   "type": "module",
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts",
-    "dev": "tsup src/cli.ts --format esm --watch"
+    "dev": "tsup src/cli.ts --format esm --watch",
+    "smoke": "node ./scripts/smoke.mjs",
+    "prepublishOnly": "npm run build && npm run smoke"
   },
   "dependencies": {
     "@clack/prompts": "^0.10.0",
