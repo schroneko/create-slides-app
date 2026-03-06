@@ -10,6 +10,7 @@ export interface NavigationState {
 }
 
 type Action =
+  | { type: "SET_TOTAL"; totalSlides: number }
   | { type: "GO_TO"; index: number }
   | { type: "NEXT" }
   | { type: "PREV" }
@@ -21,27 +22,43 @@ interface State {
   totalSlides: number;
 }
 
+function clampSlide(index: number, totalSlides: number): number {
+  if (totalSlides <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(index, totalSlides - 1));
+}
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case "SET_TOTAL":
+      return {
+        totalSlides: action.totalSlides,
+        currentSlide: clampSlide(state.currentSlide, action.totalSlides),
+      };
     case "GO_TO":
       return {
         ...state,
-        currentSlide: Math.max(0, Math.min(action.index, state.totalSlides - 1)),
+        currentSlide: clampSlide(action.index, state.totalSlides),
       };
     case "NEXT":
       return {
         ...state,
-        currentSlide: Math.min(state.currentSlide + 1, state.totalSlides - 1),
+        currentSlide: clampSlide(state.currentSlide + 1, state.totalSlides),
       };
     case "PREV":
       return {
         ...state,
-        currentSlide: Math.max(state.currentSlide - 1, 0),
+        currentSlide: clampSlide(state.currentSlide - 1, state.totalSlides),
       };
     case "FIRST":
-      return { ...state, currentSlide: 0 };
+      return { ...state, currentSlide: clampSlide(0, state.totalSlides) };
     case "LAST":
-      return { ...state, currentSlide: state.totalSlides - 1 };
+      return {
+        ...state,
+        currentSlide: clampSlide(state.totalSlides - 1, state.totalSlides),
+      };
   }
 }
 
@@ -50,6 +67,10 @@ export function useNavigation(totalSlides: number): NavigationState {
     currentSlide: 0,
     totalSlides,
   });
+
+  useEffect(() => {
+    dispatch({ type: "SET_TOTAL", totalSlides });
+  }, [totalSlides]);
 
   const next = useCallback(() => dispatch({ type: "NEXT" }), []);
   const prev = useCallback(() => dispatch({ type: "PREV" }), []);

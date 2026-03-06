@@ -20,12 +20,20 @@ export function Deck({ slides, config }: DeckProps): React.ReactElement {
   }, [config.theme]);
 
   const activeSlide = slides[currentSlide];
+  const hasSlides = slides.length > 0;
 
   return (
     <div className="deck">
-      {activeSlide && <Slide data={activeSlide} />}
+      {hasSlides && activeSlide ? (
+        <Slide data={activeSlide} />
+      ) : (
+        <div className="slide slide-empty">
+          <h1>No slides yet</h1>
+          <p>Add content to <code>slides.md</code> and separate slides with <code>---</code>.</p>
+        </div>
+      )}
       <div className="slide-number">
-        {currentSlide + 1} / {slides.length}
+        {hasSlides ? currentSlide + 1 : 0} / {slides.length}
       </div>
     </div>
   );

@@ -51,6 +51,12 @@ body {
   color: var(--color-text);
 }
 
+.slide-empty,
+.slide-fallback {
+  align-items: center;
+  text-align: center;
+}
+
 .slide h1 {
   font-size: 3rem;
   font-weight: 700;
