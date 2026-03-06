@@ -23,7 +23,9 @@ try {
     throw new Error(result.stderr || result.stdout || "CLI smoke test failed");
   }
 
-  const pkg = JSON.parse(fs.readFileSync(path.join(targetDir, "package.json"), "utf8"));
+  const pkg = JSON.parse(fs.readFileSync(path.join(targetDir, "package.json"), "utf8")) as {
+    name?: string;
+  };
 
   if (pkg.name !== expectedPackageName) {
     throw new Error(

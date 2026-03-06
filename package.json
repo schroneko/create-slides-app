@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts",
     "dev": "tsup src/cli.ts --format esm --watch",
-    "smoke": "node ./scripts/smoke.mjs",
+    "smoke": "node --import tsx ./scripts/smoke.ts",
     "prepublishOnly": "npm run build && npm run smoke"
   },
   "dependencies": {
@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
+    "tsx": "^4.20.6",
     "tsup": "^8.4.0",
     "typescript": "^5.7.0"
   },
