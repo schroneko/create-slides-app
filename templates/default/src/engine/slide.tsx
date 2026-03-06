@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
@@ -12,27 +12,20 @@ interface SlideProps {
 
 const processor = unified().use(remarkParse).use(remarkRehype).use(rehypeReact, jsxRuntime);
 
-export function Slide({ data }: SlideProps): React.ReactElement | null {
-  const [content, setContent] = useState<React.ReactElement | null>(null);
-
-  const memoizedContent = useMemo(() => data.content, [data.content]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      const file = await processor.process(memoizedContent);
-      if (!cancelled) {
-        setContent(file.result as React.ReactElement);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [memoizedContent]);
-
-  if (!content) return null;
+export function Slide({ data }: SlideProps): React.ReactElement {
+  const content = useMemo(() => {
+    try {
+      const file = processor.processSync(data.content);
+      return file.result as React.ReactElement;
+    } catch {
+      return (
+        <div className="slide-fallback">
+          <h2>Failed to render slide</h2>
+          <p>Check the Markdown syntax for this slide.</p>
+        </div>
+      );
+    }
+  }, [data.content]);
 
   return <div className="slide">{content}</div>;
 }
