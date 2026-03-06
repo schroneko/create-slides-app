@@ -28,6 +28,8 @@
   "type": "module",
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts",
+    "check": "npm run build && npm run smoke && npm run check:template",
+    "check:template": "npm --prefix templates/default run build",
     "dev": "tsup src/cli.ts --format esm --watch",
     "smoke": "node --import tsx ./scripts/smoke.ts",
     "prepublishOnly": "npm run build && npm run smoke"

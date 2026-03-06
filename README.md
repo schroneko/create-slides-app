@@ -56,6 +56,8 @@ Welcome
 
 ```bash
 npm install
+npm --prefix templates/default install
+npm run check
 npm run build
 npm run smoke
 ```
@@ -68,3 +70,11 @@ npm install
 npm run build
 npm run dev
 ```
+
+## CI
+
+GitHub Actions で以下を自動実行します。
+
+- ルート CLI の `npm ci`
+- `npm run check`
+- `templates/default` の `npm ci`
