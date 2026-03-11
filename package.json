@@ -29,8 +29,10 @@
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts",
     "check": "npm run build && npm run smoke && npm run check:template",
-    "check:template": "npm --prefix templates/default run build",
+    "check:template": "node --import tsx ./scripts/check-templates.ts",
     "dev": "tsup src/cli.ts --format esm --watch",
+    "generate:templates": "node --import tsx ./scripts/generate-templates.ts",
+    "install:templates": "node --import tsx ./scripts/install-templates.ts",
     "smoke": "node --import tsx ./scripts/smoke.ts",
     "prepublishOnly": "npm run build && npm run smoke"
   },

@@ -1,0 +1,135 @@
+/*
+ * Adapted from reveal.js black theme
+ * Source: https://raw.githubusercontent.com/hakimel/reveal.js/master/dist/theme/black.css
+ * Licensed under the MIT License.
+ */
+
+[data-theme="reveal.js-black"] {
+  --font-sans: "Source Sans Pro", Helvetica, sans-serif;
+  --font-mono: monospace;
+  --color-bg: #191919;
+  --color-surface: transparent;
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-accent: #42affa;
+  --color-code-bg: rgba(0, 0, 0, 0.16);
+  --color-line: rgba(127, 127, 127, 0.24);
+  --slide-padding: 5rem 6rem;
+  --reveal-background: #191919;
+  --reveal-heading-font: "Source Sans Pro", Helvetica, sans-serif;
+  --reveal-heading-letter-spacing: normal;
+  --reveal-heading-transform: uppercase;
+  --reveal-heading-weight: 600;
+  --reveal-heading-shadow: none;
+}
+
+[data-theme="reveal.js-black"] body {
+  background: var(--reveal-background);
+}
+
+[data-theme="reveal.js-black"] .deck {
+  padding: 0;
+  background: var(--reveal-background);
+}
+
+[data-theme="reveal.js-black"] .deck::before,
+[data-theme="reveal.js-black"] .deck::after,
+[data-theme="reveal.js-black"] .slide::before {
+  display: none;
+}
+
+[data-theme="reveal.js-black"] .slide {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  aspect-ratio: auto;
+  padding: 5rem 6rem;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-radius: 0;
+  box-shadow: none;
+  border: 0;
+  background: transparent;
+}
+
+[data-theme="reveal.js-black"] .slide h1,
+[data-theme="reveal.js-black"] .slide h2,
+[data-theme="reveal.js-black"] .slide h3,
+[data-theme="reveal.js-black"] .slide h4 {
+  font-family: var(--reveal-heading-font);
+  letter-spacing: var(--reveal-heading-letter-spacing);
+  text-transform: var(--reveal-heading-transform);
+  text-shadow: var(--reveal-heading-shadow);
+  font-weight: var(--reveal-heading-weight);
+  margin-bottom: 1.2rem;
+}
+
+[data-theme="reveal.js-black"] .slide h1 {
+  font-size: clamp(3rem, 8vw, 4.8rem);
+}
+
+[data-theme="reveal.js-black"] .slide h2 {
+  font-size: clamp(2.2rem, 6vw, 3rem);
+}
+
+[data-theme="reveal.js-black"] .slide h3 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+[data-theme="reveal.js-black"] .slide p,
+[data-theme="reveal.js-black"] .slide ul,
+[data-theme="reveal.js-black"] .slide ol,
+[data-theme="reveal.js-black"] .slide table,
+[data-theme="reveal.js-black"] .slide blockquote {
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+[data-theme="reveal.js-black"] .slide ul,
+[data-theme="reveal.js-black"] .slide ol {
+  display: inline-block;
+  text-align: left;
+  padding-left: 1.4rem;
+}
+
+[data-theme="reveal.js-black"] .slide pre {
+  width: min(90vw, 56rem);
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--color-code-bg);
+  box-shadow: none;
+}
+
+[data-theme="reveal.js-black"] .slide blockquote {
+  width: min(70vw, 52rem);
+  padding: 1rem 1.5rem;
+  background: rgba(127, 127, 127, 0.14);
+  border-left: 0;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="reveal.js-black"] .slide a {
+  text-decoration: none;
+}
+
+[data-theme="reveal.js-black"] .slide-number {
+  color: var(--color-text);
+  opacity: 0.6;
+}
+
+[data-theme="reveal.js-black"] .deck[data-slide-index="0"] .slide h1 {
+  margin-bottom: 1.4rem;
+}
+
+[data-theme="reveal.js-black"] .deck[data-slide-index="0"] .slide p:first-of-type {
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 960px) {
+  [data-theme="reveal.js-black"] .slide {
+    padding: 2rem;
+  }
+}
+

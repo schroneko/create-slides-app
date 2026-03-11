@@ -1,0 +1,90 @@
+/*
+ * Adapted from themes-seriph
+ * Source: https://registry.npmjs.org/@slidev/theme-seriph/-/theme-seriph-0.25.0.tgz
+ * Licensed under the MIT License.
+ */
+
+[data-theme="themes-seriph"] {
+  --font-sans: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: "SFMono-Regular", Menlo, Consolas, monospace;
+  --color-bg: #fcfbf7;
+  --color-surface: #fcfbf7;
+  --color-text: #2d3748;
+  --color-heading: #2d3748;
+  --color-accent: #5d8392;
+  --color-code-bg: #f5f3ee;
+  --color-line: rgba(45, 55, 72, 0.12);
+  --slide-padding: 4.5rem;
+}
+
+[data-theme="themes-seriph"] body {
+  background: #fcfbf7;
+}
+
+[data-theme="themes-seriph"] .deck {
+  background: #fcfbf7;
+}
+
+[data-theme="themes-seriph"] .slide h1,
+[data-theme="themes-seriph"] .slide h2,
+[data-theme="themes-seriph"] .slide h3,
+[data-theme="themes-seriph"] .slide h4 {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+}
+
+[data-theme="themes-seriph"] .slide h1 {
+  font-size: clamp(2.7rem, 6vw, 4.1rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+[data-theme="themes-seriph"] .slide h2 {
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+}
+
+[data-theme="themes-seriph"] .slide h3 {
+  font-size: 1.1rem;
+  padding-top: 0.25rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+[data-theme="themes-seriph"] .slide p + h2,
+[data-theme="themes-seriph"] .slide ul + h2,
+[data-theme="themes-seriph"] .slide table + h2 {
+  margin-top: 2.5rem;
+}
+
+[data-theme="themes-seriph"] .slide blockquote {
+  background: #f5f3ee;
+  border-left-color: #5d8392;
+  border-radius: 10px;
+  color: #2d3748;
+}
+
+[data-theme="themes-seriph"] .slide a {
+  border-bottom: 1px dashed currentColor;
+}
+
+[data-theme="themes-seriph"] .deck[data-slide-index="0"] .slide {
+  text-align: left;
+  align-items: flex-start;
+}
+
+[data-theme="themes-seriph"] .deck[data-slide-index="0"] .slide p:first-of-type {
+  margin-top: -0.3rem;
+  margin-bottom: 1rem;
+  color: #5d8392;
+}
+
+[data-theme="themes-seriph"] .deck[data-slide-index="0"] .slide p:last-of-type {
+  margin-top: auto;
+  color: rgba(45, 55, 72, 0.45);
+}
+
+
+[data-theme="themes-seriph"] .slide h1 + p {
+  opacity: 0.75;
+}
+
+

@@ -27,14 +27,13 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            templates/default/package-lock.json
+            templates/*/package-lock.json
 
       - name: Install root dependencies
         run: npm ci
 
       - name: Install template dependencies
-        run: npm ci
-        working-directory: templates/default
+        run: npm run install:templates
 
       - name: Verify project
         run: npm run check
