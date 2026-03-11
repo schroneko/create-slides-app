@@ -12,6 +12,7 @@ const templatesRoot = path.resolve(__dirname, "..", "templates");
 interface CliOptions {
   help: boolean;
   projectName?: string;
+  markdownPath?: string;
   template?: string;
 }
 
@@ -20,11 +21,17 @@ function printHelp(): void {
 
 Usage:
   create-slides-app [project-name] [--template <name>]
+  create-slides-app [slides.md] [--template <name>]
+  create-slides-app [--template <name>]
 
 Options:
   --template <name>  Template directory under templates/
   --help             Show this message
 `);
+}
+
+function hasMarkdownExtension(value: string): boolean {
+  return /\.(md|markdown)$/i.test(value);
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -48,8 +55,12 @@ function parseArgs(argv: string[]): CliOptions {
       continue;
     }
 
-    if (!options.projectName) {
-      options.projectName = arg;
+    if (!options.projectName && !options.markdownPath) {
+      if (hasMarkdownExtension(arg)) {
+        options.markdownPath = arg;
+      } else {
+        options.projectName = arg;
+      }
       continue;
     }
 
@@ -79,6 +90,24 @@ function validateTargetPath(projectName: string): string | undefined {
   }
 
   return undefined;
+}
+
+function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
+  if (!initialMarkdownPath) {
+    return undefined;
+  }
+
+  const markdownPath = path.resolve(process.cwd(), initialMarkdownPath);
+
+  if (!fs.existsSync(markdownPath)) {
+    throw new Error(`Markdown file "${initialMarkdownPath}" does not exist`);
+  }
+
+  if (!fs.statSync(markdownPath).isFile()) {
+    throw new Error(`Markdown path "${initialMarkdownPath}" is not a file`);
+  }
+
+  return markdownPath;
 }
 
 function toPackageName(projectName: string): string {
@@ -113,6 +142,11 @@ async function resolveProjectName(initialProjectName?: string): Promise<string> 
   return result;
 }
 
+function deriveProjectNameFromMarkdown(markdownPath: string): string {
+  const fileName = path.basename(markdownPath, path.extname(markdownPath)).trim();
+  return fileName || "my-slides";
+}
+
 async function resolveTemplate(overrideTemplate?: string): Promise<string> {
   const templates = listTemplates();
 
@@ -122,7 +156,7 @@ async function resolveTemplate(overrideTemplate?: string): Promise<string> {
 
   if (overrideTemplate) {
     if (!templates.includes(overrideTemplate)) {
-      throw new Error(`Unknown template "${overrideTemplate}"`);
+      throw new Error(`Unknown template "${overrideTemplate}". Available templates: ${templates.join(", ")}`);
     }
     return overrideTemplate;
   }
@@ -135,8 +169,7 @@ async function resolveTemplate(overrideTemplate?: string): Promise<string> {
     message: "Select a template:",
     options: templates.map((template) => ({
       value: template,
-      label: template === "default" ? "Default" : template,
-      hint: template === "default" ? "minimal + clean" : undefined,
+      label: template,
     })),
   });
 
@@ -158,7 +191,10 @@ async function main(): Promise<void> {
 
   intro(pc.cyan("create-slides-app"));
 
-  const projectName = await resolveProjectName(options.projectName);
+  const markdownPath = resolveMarkdownPath(options.markdownPath);
+  const projectName = await resolveProjectName(
+    options.projectName ?? (markdownPath ? deriveProjectNameFromMarkdown(markdownPath) : undefined),
+  );
   const template = await resolveTemplate(options.template);
   const templateDir = path.resolve(templatesRoot, template);
   const targetDir = path.resolve(process.cwd(), projectName);
@@ -171,9 +207,14 @@ async function main(): Promise<void> {
   pkg.name = toPackageName(path.basename(targetDir));
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
+  if (markdownPath) {
+    fs.copyFileSync(markdownPath, path.join(targetDir, "slides.md"));
+  }
+
   outro(
     pc.green("Done!") +
       "\n\n" +
+      (markdownPath ? `  ${pc.cyan("slides")} ${path.relative(process.cwd(), markdownPath)}\n` : "") +
       `  ${pc.cyan("cd")} ${projectName}\n` +
       `  ${pc.cyan("npm install")}\n` +
       `  ${pc.cyan("npm run dev")}\n`,

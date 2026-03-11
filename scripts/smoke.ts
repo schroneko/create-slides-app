@@ -5,41 +5,94 @@ import { spawnSync } from "node:child_process";
 
 const repoRoot = process.cwd();
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "create-slides-app-"));
-const projectName = "Smoke Slides";
-const targetDir = path.join(tempRoot, projectName);
-const expectedPackageName = "smoke-slides";
 
 try {
-  const result = spawnSync(
+  const cases = [
+    {
+      label: "project name",
+      args: ["Smoke Slides", "--template", "quarto-revealjs-clean"],
+      targetDir: path.join(tempRoot, "Smoke Slides"),
+      expectedPackageName: "smoke-slides",
+      expectedSlides: undefined,
+    },
+    {
+      label: "markdown import",
+      args: ["input-deck.md", "--template", "reveal.js-black"],
+      targetDir: path.join(tempRoot, "input-deck"),
+      expectedPackageName: "input-deck",
+      expectedSlides: "# Imported Deck\n\nHello from smoke test.\n",
+    },
+  ] as const;
+
+  fs.writeFileSync(path.join(tempRoot, "input-deck.md"), "# Imported Deck\n\nHello from smoke test.\n");
+
+  for (const smokeCase of cases) {
+    const result = spawnSync(
+      process.execPath,
+      [path.join(repoRoot, "dist/cli.js"), ...smokeCase.args],
+      {
+        cwd: tempRoot,
+        encoding: "utf8",
+      },
+    );
+
+    if (result.status !== 0) {
+      throw new Error(
+        `${smokeCase.label} failed: ${result.stderr || result.stdout || "CLI smoke test failed"}`,
+      );
+    }
+
+    const pkg = JSON.parse(fs.readFileSync(path.join(smokeCase.targetDir, "package.json"), "utf8")) as {
+      name?: string;
+    };
+
+    if (pkg.name !== smokeCase.expectedPackageName) {
+      throw new Error(
+        `${smokeCase.label} package mismatch: expected "${smokeCase.expectedPackageName}", got "${pkg.name}"`,
+      );
+    }
+
+    for (const requiredFile of ["slides.md", "src/main.tsx", "src/app.tsx"]) {
+      if (!fs.existsSync(path.join(smokeCase.targetDir, requiredFile))) {
+        throw new Error(`${smokeCase.label} missing generated file: ${requiredFile}`);
+      }
+    }
+
+    if (smokeCase.expectedSlides) {
+      const generatedSlides = fs.readFileSync(path.join(smokeCase.targetDir, "slides.md"), "utf8");
+      if (generatedSlides !== smokeCase.expectedSlides) {
+        throw new Error(`${smokeCase.label} did not copy the source markdown`);
+      }
+    }
+  }
+
+  const unknownTemplate = spawnSync(
     process.execPath,
-    [path.join(repoRoot, "dist/cli.js"), projectName, "--template", "default"],
+    [path.join(repoRoot, "dist/cli.js"), "Unknown Template", "--template", "default"],
     {
       cwd: tempRoot,
       encoding: "utf8",
     },
   );
 
-  if (result.status !== 0) {
-    throw new Error(result.stderr || result.stdout || "CLI smoke test failed");
+  if (unknownTemplate.status === 0) {
+    throw new Error("unknown template should have failed");
   }
 
-  const pkg = JSON.parse(fs.readFileSync(path.join(targetDir, "package.json"), "utf8")) as {
-    name?: string;
-  };
-
-  if (pkg.name !== expectedPackageName) {
-    throw new Error(
-      `Generated package name mismatch: expected "${expectedPackageName}", got "${pkg.name}"`,
-    );
+  if (!(unknownTemplate.stderr || unknownTemplate.stdout).includes('Unknown template "default"')) {
+    throw new Error("unknown template did not produce the expected error");
   }
 
-  for (const requiredFile of ["slides.md", "src/main.tsx", "src/app.tsx"]) {
-    if (!fs.existsSync(path.join(targetDir, requiredFile))) {
-      throw new Error(`Missing generated file: ${requiredFile}`);
-    }
+  const copiedThemeCss = fs.readFileSync(
+    path.join(tempRoot, "input-deck", "src", "styles", "themes", "reveal.js-black.css"),
+    "utf8",
+  );
+
+  if (!copiedThemeCss.includes('[data-theme="reveal.js-black"]')) {
+    throw new Error("copied template does not include the expected theme stylesheet");
   }
 
-  console.log(`Smoke test passed: ${targetDir}`);
+  console.log(`Smoke test passed: ${tempRoot}`);
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
