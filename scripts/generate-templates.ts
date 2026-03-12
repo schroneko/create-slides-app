@@ -59,7 +59,6 @@ const seedFiles = new Map<string, string>();
 for (const relativePath of [
   "index.html",
   "package.json",
-  "package-lock.json",
   "tsconfig.json",
   "vite.config.ts",
   "src/app.tsx",

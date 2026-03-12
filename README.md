@@ -16,7 +16,7 @@ npx create-slides-app example.md
 npx create-slides-app deck.md --build
 ```
 
-PDF にエクスポートする場合 (puppeteer が必要):
+PDF にエクスポートする場合 (Google Chrome が必要):
 
 ```bash
 npx create-slides-app deck.md --export
@@ -41,7 +41,7 @@ create-slides-app [project-name] [--template <name>]
 - `project-name`: 生成先ディレクトリ名
 - `--template`: `templates/` 配下にあるテンプレート名だけ指定可能
 - `--build`: dev サーバーを起動せず `dist/` に静的 HTML を出力
-- `--export`: スライドを PDF にエクスポート (puppeteer が必要)
+- `--export`: スライドを PDF にエクスポート (Google Chrome が必要)
 
 ## Available templates
 
