@@ -266,7 +266,7 @@ async function main(): Promise<void> {
     process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   spawn(openCommand, [url], { stdio: "ignore", detached: true }).unref();
 
-  outro(pc.green("Slides are live! Press Ctrl+C to stop."));
+  outro(pc.green("Slides are live! Press Ctrl+C to build and exit."));
 
   devProcess.unref();
 
@@ -278,6 +278,15 @@ async function main(): Promise<void> {
     process.on("SIGINT", onSignal);
     process.on("SIGTERM", onSignal);
   });
+
+  const distDir = path.join(targetDir, "dist");
+
+  const b = spinner();
+  b.start("Building for production...");
+  execSync("npm run build", { cwd: targetDir, stdio: "ignore" });
+  b.stop("Build complete.");
+
+  console.log(`\n  ${pc.cyan("Output")} ${distDir}\n`);
 }
 
 main().catch((error: unknown) => {
