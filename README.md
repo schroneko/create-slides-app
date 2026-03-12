@@ -5,21 +5,21 @@ Markdown から React 製スライドアプリを生成する CLI です。
 ## Usage
 
 ```bash
-npx create-slides-app my-slides
-cd my-slides
-npm install
-npm run dev
+npx create-slides-app deck.md
 ```
 
-`http://localhost:3030` でスライドを表示します。
+これだけで依存のインストール、dev サーバーの起動、ブラウザのオープンまで自動で行います。`http://localhost:3030` でスライドが表示されます。
 
-Markdown ファイルを元に作ることもできます。
+テンプレートを指定する場合:
 
 ```bash
 npx create-slides-app deck.md --template reveal.js-black
-cd deck
-npm install
-npm run dev
+```
+
+プロジェクト名だけ指定して始める場合:
+
+```bash
+npx create-slides-app my-slides
 ```
 
 ## CLI options

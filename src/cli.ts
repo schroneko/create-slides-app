@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { intro, outro, text, select, isCancel } from "@clack/prompts";
+import { intro, outro, text, select, isCancel, spinner } from "@clack/prompts";
+import { execSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +12,7 @@ const templatesRoot = path.resolve(__dirname, "..", "templates");
 
 interface CliOptions {
   help: boolean;
+  scaffoldOnly: boolean;
   projectName?: string;
   markdownPath?: string;
   template?: string;
@@ -35,13 +37,18 @@ function hasMarkdownExtension(value: string): boolean {
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { help: false };
+  const options: CliOptions = { help: false, scaffoldOnly: false };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
 
     if (arg === "--help" || arg === "-h") {
       options.help = true;
+      continue;
+    }
+
+    if (arg === "--scaffold-only") {
+      options.scaffoldOnly = true;
       continue;
     }
 
@@ -211,14 +218,66 @@ async function main(): Promise<void> {
     fs.copyFileSync(markdownPath, path.join(targetDir, "slides.md"));
   }
 
-  outro(
-    pc.green("Done!") +
-      "\n\n" +
-      (markdownPath ? `  ${pc.cyan("slides")} ${path.relative(process.cwd(), markdownPath)}\n` : "") +
-      `  ${pc.cyan("cd")} ${projectName}\n` +
-      `  ${pc.cyan("npm install")}\n` +
-      `  ${pc.cyan("npm run dev")}\n`,
-  );
+  if (options.scaffoldOnly) {
+    outro(pc.green("Done!"));
+    return;
+  }
+
+  const s = spinner();
+  s.start("Installing dependencies...");
+  execSync("npm install --silent", { cwd: targetDir, stdio: "ignore" });
+  s.stop("Dependencies installed.");
+
+  const port = 3030;
+  const url = `http://localhost:${port}`;
+
+  s.start(`Starting dev server on ${pc.cyan(url)}...`);
+
+  const devProcess = spawn("npm", ["run", "dev"], {
+    cwd: targetDir,
+    stdio: "pipe",
+    detached: true,
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error("Dev server failed to start within 30 seconds"));
+    }, 30_000);
+
+    const onData = (chunk: Buffer) => {
+      if (chunk.toString().includes("Local:")) {
+        clearTimeout(timeout);
+        resolve();
+      }
+    };
+
+    devProcess.stdout?.on("data", onData);
+    devProcess.stderr?.on("data", onData);
+
+    devProcess.on("error", (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+  });
+
+  s.stop(`Dev server running at ${pc.cyan(url)}`);
+
+  const openCommand =
+    process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+  spawn(openCommand, [url], { stdio: "ignore", detached: true }).unref();
+
+  outro(pc.green("Slides are live! Press Ctrl+C to stop."));
+
+  devProcess.unref();
+
+  await new Promise<void>((resolve) => {
+    const onSignal = () => {
+      devProcess.kill();
+      resolve();
+    };
+    process.on("SIGINT", onSignal);
+    process.on("SIGTERM", onSignal);
+  });
 }
 
 main().catch((error: unknown) => {

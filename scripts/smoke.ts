@@ -10,14 +10,14 @@ try {
   const cases = [
     {
       label: "project name",
-      args: ["Smoke Slides", "--template", "quarto-revealjs-clean"],
+      args: ["Smoke Slides", "--template", "quarto-revealjs-clean", "--scaffold-only"],
       targetDir: path.join(tempRoot, "Smoke Slides"),
       expectedPackageName: "smoke-slides",
       expectedSlides: undefined,
     },
     {
       label: "markdown import",
-      args: ["input-deck.md", "--template", "reveal.js-black"],
+      args: ["input-deck.md", "--template", "reveal.js-black", "--scaffold-only"],
       targetDir: path.join(tempRoot, "input-deck"),
       expectedPackageName: "input-deck",
       expectedSlides: "# Imported Deck\n\nHello from smoke test.\n",
@@ -68,7 +68,7 @@ try {
 
   const unknownTemplate = spawnSync(
     process.execPath,
-    [path.join(repoRoot, "dist/cli.js"), "Unknown Template", "--template", "default"],
+    [path.join(repoRoot, "dist/cli.js"), "Unknown Template", "--template", "default", "--scaffold-only"],
     {
       cwd: tempRoot,
       encoding: "utf8",
