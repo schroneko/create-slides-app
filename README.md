@@ -5,10 +5,22 @@ Markdown から React 製スライドアプリを生成する CLI です。
 ## Usage
 
 ```bash
-npx create-slides-app deck.md
+npx create-slides-app example.md
 ```
 
-これだけで依存のインストール、dev サーバーの起動、ブラウザのオープンまで自動で行います。`http://localhost:3030` でスライドが表示されます。Ctrl+C で終了すると自動でビルドが走り、`dist/` に静的ファイルが出力されます。
+指定した Markdown ファイルが存在しなければサンプルスライドを自動生成します。依存のインストール、dev サーバーの起動、ブラウザのオープンまで自動で行います。
+
+静的 HTML をビルドする場合:
+
+```bash
+npx create-slides-app deck.md --build
+```
+
+PDF にエクスポートする場合 (puppeteer が必要):
+
+```bash
+npx create-slides-app deck.md --export
+```
 
 テンプレートを指定する場合:
 
@@ -16,27 +28,23 @@ npx create-slides-app deck.md
 npx create-slides-app deck.md --template reveal.js-black
 ```
 
-プロジェクト名だけ指定して始める場合:
-
-```bash
-npx create-slides-app my-slides
-```
-
 ## CLI options
 
 ```bash
-create-slides-app [project-name] [--template <name>]
 create-slides-app [slides.md] [--template <name>]
-create-slides-app [--template <name>]
+create-slides-app [slides.md] --build
+create-slides-app [slides.md] --export
+create-slides-app [project-name] [--template <name>]
 ```
 
+- `slides.md`: 取り込む Markdown ファイル。存在しなければサンプルを自動生成。出力先はファイル名から自動決定
 - `project-name`: 生成先ディレクトリ名
-- `slides.md`: 取り込む Markdown ファイル。出力先はファイル名から自動決定
 - `--template`: `templates/` 配下にあるテンプレート名だけ指定可能
+- `--build`: dev サーバーを起動せず `dist/` に静的 HTML を出力
+- `--export`: スライドを PDF にエクスポート (puppeteer が必要)
 
 ## Available templates
 
-- `quarto-revealjs-clean`
 - `reveal.js-black`
 - `reveal.js-white`
 - `reveal.js-league`
@@ -49,13 +57,8 @@ create-slides-app [--template <name>]
 - `reveal.js-blood`
 - `reveal.js-moon`
 - `reveal.js-dracula`
-- `marp-core-default`
-- `marp-core-gaia`
-- `marp-core-uncover`
-- `themes-default`
-- `themes-seriph`
-- `themes-apple-basic`
-- `slidev-theme-geist`
+
+All themes are adapted from the original reveal.js theme CSS (MIT license).
 
 ## Template notes
 
