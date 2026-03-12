@@ -13,6 +13,8 @@ const templatesRoot = path.resolve(__dirname, "..", "templates");
 interface CliOptions {
   help: boolean;
   scaffoldOnly: boolean;
+  build: boolean;
+  export: boolean;
   projectName?: string;
   markdownPath?: string;
   template?: string;
@@ -22,12 +24,14 @@ function printHelp(): void {
   console.log(`create-slides-app
 
 Usage:
-  create-slides-app [project-name] [--template <name>]
   create-slides-app [slides.md] [--template <name>]
-  create-slides-app [--template <name>]
+  create-slides-app [slides.md] --build
+  create-slides-app [slides.md] --export
 
 Options:
   --template <name>  Template directory under templates/
+  --build            Build static HTML to dist/ (no dev server)
+  --export           Export slides to PDF
   --help             Show this message
 `);
 }
@@ -37,7 +41,7 @@ function hasMarkdownExtension(value: string): boolean {
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { help: false, scaffoldOnly: false };
+  const options: CliOptions = { help: false, scaffoldOnly: false, build: false, export: false };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -49,6 +53,16 @@ function parseArgs(argv: string[]): CliOptions {
 
     if (arg === "--scaffold-only") {
       options.scaffoldOnly = true;
+      continue;
+    }
+
+    if (arg === "--build") {
+      options.build = true;
+      continue;
+    }
+
+    if (arg === "--export") {
+      options.export = true;
       continue;
     }
 
@@ -99,6 +113,38 @@ function validateTargetPath(projectName: string): string | undefined {
   return undefined;
 }
 
+const exampleMarkdown = `---
+title: Example Slides
+---
+
+# Example Slides
+
+Created with create-slides-app
+
+---
+
+# Getting Started
+
+- Edit this file to create your slides
+- Slides are separated by \`---\`
+- Use standard Markdown syntax
+
+---
+
+# Code
+
+\`\`\`typescript
+const message = "Hello, slides!";
+console.log(message);
+\`\`\`
+
+---
+
+# Next Steps
+
+Replace this deck with your own content.
+`;
+
 function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
   if (!initialMarkdownPath) {
     return undefined;
@@ -107,7 +153,7 @@ function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
   const markdownPath = path.resolve(process.cwd(), initialMarkdownPath);
 
   if (!fs.existsSync(markdownPath)) {
-    throw new Error(`Markdown file "${initialMarkdownPath}" does not exist`);
+    fs.writeFileSync(markdownPath, exampleMarkdown);
   }
 
   if (!fs.statSync(markdownPath).isFile()) {
@@ -188,6 +234,133 @@ async function resolveTemplate(overrideTemplate?: string): Promise<string> {
   return selected;
 }
 
+function findChrome(): string | undefined {
+  const candidates =
+    process.platform === "darwin"
+      ? [
+          "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+          "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        ]
+      : process.platform === "win32"
+        ? [
+            `${process.env.PROGRAMFILES}\\Google\\Chrome\\Application\\chrome.exe`,
+            `${process.env["PROGRAMFILES(X86)"]}\\Google\\Chrome\\Application\\chrome.exe`,
+            `${process.env.LOCALAPPDATA}\\Google\\Chrome\\Application\\chrome.exe`,
+          ]
+        : [
+            "/usr/bin/google-chrome",
+            "/usr/bin/google-chrome-stable",
+            "/usr/bin/chromium",
+            "/usr/bin/chromium-browser",
+          ];
+
+  return candidates.find((p) => fs.existsSync(p));
+}
+
+async function startDevServer(targetDir: string, port: number): Promise<ReturnType<typeof spawn>> {
+  const devProcess = spawn("npm", ["run", "dev", "--", "--port", String(port)], {
+    cwd: targetDir,
+    stdio: "pipe",
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error("Dev server failed to start within 30 seconds"));
+    }, 30_000);
+
+    const onData = (chunk: Buffer) => {
+      if (chunk.toString().includes("Local:")) {
+        clearTimeout(timeout);
+        resolve();
+      }
+    };
+
+    devProcess.stdout?.on("data", onData);
+    devProcess.stderr?.on("data", onData);
+
+    devProcess.on("error", (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+  });
+
+  return devProcess;
+}
+
+async function exportPdf(targetDir: string, pdfName: string): Promise<void> {
+  const s = spinner();
+  s.start("Starting dev server for PDF export...");
+
+  const port = 3031;
+  const url = `http://localhost:${port}`;
+  const devProcess = await startDevServer(targetDir, port);
+
+  s.stop("Dev server ready.");
+
+  const p = spinner();
+  p.start("Generating PDF...");
+
+  try {
+    const puppeteer = await import("puppeteer-core");
+    const { PDFDocument } = await import("pdf-lib");
+
+    const chromePath = findChrome();
+    if (!chromePath) {
+      throw new Error("Chrome not found. Install Google Chrome to use --export.");
+    }
+
+    const browser = await puppeteer.default.launch({ headless: true, executablePath: chromePath });
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 720 });
+    await page.goto(url, { waitUntil: "networkidle0" });
+
+    const totalSlides: number = await page.evaluate(() => {
+      const el = document.querySelector(".slide-number");
+      if (!el) return 1;
+      const match = el.textContent?.match(/(\d+)\s*\/\s*(\d+)/);
+      return match ? parseInt(match[2], 10) : 1;
+    });
+
+    const pdfDoc = await PDFDocument.create();
+    const width = 1280;
+    const height = 720;
+
+    for (let i = 0; i < totalSlides; i++) {
+      if (i > 0) {
+        await page.keyboard.press("ArrowRight");
+        await new Promise((r) => setTimeout(r, 300));
+      }
+
+      const screenshot: Uint8Array = await page.screenshot({ type: "png" });
+      const pngImage = await pdfDoc.embedPng(screenshot);
+      const pdfPage = pdfDoc.addPage([width, height]);
+      pdfPage.drawImage(pngImage, { x: 0, y: 0, width, height });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const pdfPath = path.join(targetDir, `${pdfName}.pdf`);
+    fs.writeFileSync(pdfPath, pdfBytes);
+
+    await browser.close();
+    p.stop(`PDF generated (${totalSlides} slides).`);
+    outro(pc.green(`Output: ${pdfPath}`));
+  } catch (err) {
+    p.stop("PDF export failed.");
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("Chrome not found")) {
+      console.error(pc.red(msg));
+    } else if (msg.includes("Cannot find package") || msg.includes("MODULE_NOT_FOUND")) {
+      console.error(pc.red("puppeteer-core is required for PDF export."));
+    } else {
+      console.error(pc.red(msg));
+    }
+    process.exitCode = 1;
+  } finally {
+    devProcess.kill();
+  }
+}
+
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
 
@@ -228,37 +401,27 @@ async function main(): Promise<void> {
   execSync("npm install --silent", { cwd: targetDir, stdio: "ignore" });
   s.stop("Dependencies installed.");
 
+  if (options.build) {
+    const b = spinner();
+    b.start("Building for production...");
+    execSync("npm run build", { cwd: targetDir, stdio: "ignore" });
+    b.stop("Build complete.");
+    const distDir = path.join(targetDir, "dist");
+    outro(pc.green(`Output: ${distDir}`));
+    return;
+  }
+
+  if (options.export) {
+    await exportPdf(targetDir, path.basename(targetDir));
+    return;
+  }
+
   const port = 3030;
   const url = `http://localhost:${port}`;
 
   s.start(`Starting dev server on ${pc.cyan(url)}...`);
 
-  const devProcess = spawn("npm", ["run", "dev"], {
-    cwd: targetDir,
-    stdio: "pipe",
-    detached: true,
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new Error("Dev server failed to start within 30 seconds"));
-    }, 30_000);
-
-    const onData = (chunk: Buffer) => {
-      if (chunk.toString().includes("Local:")) {
-        clearTimeout(timeout);
-        resolve();
-      }
-    };
-
-    devProcess.stdout?.on("data", onData);
-    devProcess.stderr?.on("data", onData);
-
-    devProcess.on("error", (err) => {
-      clearTimeout(timeout);
-      reject(err);
-    });
-  });
+  const devProcess = await startDevServer(targetDir, port);
 
   s.stop(`Dev server running at ${pc.cyan(url)}`);
 
@@ -266,7 +429,7 @@ async function main(): Promise<void> {
     process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   spawn(openCommand, [url], { stdio: "ignore", detached: true }).unref();
 
-  outro(pc.green("Slides are live! Press Ctrl+C to build and exit."));
+  outro(pc.green("Slides are live! Press Ctrl+C to stop."));
 
   devProcess.unref();
 
@@ -278,15 +441,6 @@ async function main(): Promise<void> {
     process.on("SIGINT", onSignal);
     process.on("SIGTERM", onSignal);
   });
-
-  const distDir = path.join(targetDir, "dist");
-
-  const b = spinner();
-  b.start("Building for production...");
-  execSync("npm run build", { cwd: targetDir, stdio: "ignore" });
-  b.stop("Build complete.");
-
-  console.log(`\n  ${pc.cyan("Output")} ${distDir}\n`);
 }
 
 main().catch((error: unknown) => {

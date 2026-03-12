@@ -27,7 +27,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "tsup src/cli.ts --format esm --dts",
+    "build": "tsup src/cli.ts --format esm --dts --external puppeteer-core",
     "check": "npm run build && npm run smoke && npm run check:template",
     "check:template": "node --import tsx ./scripts/check-templates.ts",
     "dev": "tsup src/cli.ts --format esm --watch",
@@ -38,12 +38,14 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.10.0",
-    "picocolors": "^1.1.0"
+    "pdf-lib": "^1.17.1",
+    "picocolors": "^1.1.0",
+    "puppeteer-core": "^24.39.0"
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
-    "tsx": "^4.20.6",
     "tsup": "^8.4.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.7.0"
   },
   "engines": {
