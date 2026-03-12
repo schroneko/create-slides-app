@@ -3,9 +3,11 @@
 import { intro, outro, text, select, isCancel, spinner } from "@clack/prompts";
 import { execSync, spawn } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pc from "picocolors";
+import WebSocket from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const templatesRoot = path.resolve(__dirname, "..", "templates");
@@ -288,39 +290,142 @@ async function startDevServer(targetDir: string, port: number): Promise<ReturnTy
   return devProcess;
 }
 
+interface CdpResponse {
+  id: number;
+  result?: Record<string, unknown>;
+  error?: { message: string };
+}
+
+class CdpClient {
+  private ws: WebSocket;
+  private nextId = 1;
+  private pending = new Map<number, { resolve: (v: CdpResponse) => void; reject: (e: Error) => void }>();
+
+  private constructor(ws: WebSocket) {
+    this.ws = ws;
+    this.ws.on("message", (data: WebSocket.Data) => {
+      const msg = JSON.parse(data.toString()) as CdpResponse;
+      const handler = this.pending.get(msg.id);
+      if (handler) {
+        this.pending.delete(msg.id);
+        handler.resolve(msg);
+      }
+    });
+  }
+
+  static async connect(wsUrl: string): Promise<CdpClient> {
+    const ws = new WebSocket(wsUrl);
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", resolve);
+      ws.once("error", reject);
+    });
+    return new CdpClient(ws);
+  }
+
+  async send(method: string, params: Record<string, unknown> = {}): Promise<CdpResponse> {
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      this.ws.send(JSON.stringify({ id, method, params }));
+    });
+  }
+
+  close(): void {
+    this.ws.close();
+  }
+}
+
+async function launchHeadlessChrome(debugPort: number): Promise<ReturnType<typeof spawn>> {
+  const chromePath = findChrome();
+  if (!chromePath) {
+    throw new Error("Chrome not found. Install Google Chrome to use --export.");
+  }
+
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "csa-chrome-"));
+  const chromeProcess = spawn(chromePath, [
+    "--headless=new",
+    `--remote-debugging-port=${debugPort}`,
+    `--user-data-dir=${userDataDir}`,
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-gpu",
+    "--window-size=1280,720",
+    "about:blank",
+  ], { stdio: "pipe" });
+
+  chromeProcess.on("exit", () => {
+    fs.rmSync(userDataDir, { recursive: true, force: true });
+  });
+
+  for (let i = 0; i < 50; i++) {
+    try {
+      const res = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
+      if (res.ok) return chromeProcess;
+    } catch {}
+    await new Promise((r) => setTimeout(r, 200));
+  }
+
+  chromeProcess.kill();
+  throw new Error("Chrome failed to start within 10 seconds");
+}
+
 async function exportPdf(targetDir: string, pdfName: string): Promise<void> {
   const s = spinner();
   s.start("Starting dev server for PDF export...");
 
-  const port = 3031;
-  const url = `http://localhost:${port}`;
-  const devProcess = await startDevServer(targetDir, port);
+  const devPort = 3031;
+  const devUrl = `http://localhost:${devPort}`;
+  const devProcess = await startDevServer(targetDir, devPort);
 
   s.stop("Dev server ready.");
 
   const p = spinner();
   p.start("Generating PDF...");
 
+  const debugPort = 9223;
+  let chromeProcess: ReturnType<typeof spawn> | undefined;
+
   try {
-    const puppeteer = await import("puppeteer-core");
     const { PDFDocument } = await import("pdf-lib");
 
-    const chromePath = findChrome();
-    if (!chromePath) {
-      throw new Error("Chrome not found. Install Google Chrome to use --export.");
+    chromeProcess = await launchHeadlessChrome(debugPort);
+
+    const versionRes = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
+    const versionData = (await versionRes.json()) as { webSocketDebuggerUrl: string };
+
+    const targetsRes = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
+    const targets = (await targetsRes.json()) as { webSocketDebuggerUrl: string; type: string }[];
+    const pageTarget = targets.find((t) => t.type === "page");
+
+    if (!pageTarget) {
+      throw new Error("No page target found in Chrome");
     }
 
-    const browser = await puppeteer.default.launch({ headless: true, executablePath: chromePath });
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 720 });
-    await page.goto(url, { waitUntil: "networkidle0" });
+    const cdp = await CdpClient.connect(pageTarget.webSocketDebuggerUrl);
 
-    const totalSlides: number = await page.evaluate(() => {
-      const el = document.querySelector(".slide-number");
-      if (!el) return 1;
-      const match = el.textContent?.match(/(\d+)\s*\/\s*(\d+)/);
-      return match ? parseInt(match[2], 10) : 1;
+    await cdp.send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 720,
+      deviceScaleFactor: 2,
+      mobile: false,
     });
+
+    await cdp.send("Page.enable");
+    await cdp.send("Page.navigate", { url: devUrl });
+
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const slideCountResult = await cdp.send("Runtime.evaluate", {
+      expression: `(() => {
+        const el = document.querySelector(".slide-number");
+        if (!el) return 1;
+        const match = el.textContent?.match(/(\\d+)\\s*\\/\\s*(\\d+)/);
+        return match ? parseInt(match[2], 10) : 1;
+      })()`,
+      returnByValue: true,
+    });
+
+    const totalSlides = (slideCountResult.result?.result as { value: number })?.value ?? 1;
 
     const pdfDoc = await PDFDocument.create();
     const width = 1280;
@@ -328,12 +433,31 @@ async function exportPdf(targetDir: string, pdfName: string): Promise<void> {
 
     for (let i = 0; i < totalSlides; i++) {
       if (i > 0) {
-        await page.keyboard.press("ArrowRight");
+        await cdp.send("Input.dispatchKeyEvent", {
+          type: "keyDown",
+          key: "ArrowRight",
+          code: "ArrowRight",
+          windowsVirtualKeyCode: 39,
+          nativeVirtualKeyCode: 39,
+        });
+        await cdp.send("Input.dispatchKeyEvent", {
+          type: "keyUp",
+          key: "ArrowRight",
+          code: "ArrowRight",
+          windowsVirtualKeyCode: 39,
+          nativeVirtualKeyCode: 39,
+        });
         await new Promise((r) => setTimeout(r, 300));
       }
 
-      const screenshot: Uint8Array = await page.screenshot({ type: "png" });
-      const pngImage = await pdfDoc.embedPng(screenshot);
+      const screenshotResult = await cdp.send("Page.captureScreenshot", {
+        format: "png",
+        clip: { x: 0, y: 0, width: 1280, height: 720, scale: 1 },
+      });
+
+      const screenshotData = (screenshotResult.result?.data as string) ?? "";
+      const pngBuffer = Buffer.from(screenshotData, "base64");
+      const pngImage = await pdfDoc.embedPng(pngBuffer);
       const pdfPage = pdfDoc.addPage([width, height]);
       pdfPage.drawImage(pngImage, { x: 0, y: 0, width, height });
     }
@@ -342,21 +466,16 @@ async function exportPdf(targetDir: string, pdfName: string): Promise<void> {
     const pdfPath = path.join(targetDir, `${pdfName}.pdf`);
     fs.writeFileSync(pdfPath, pdfBytes);
 
-    await browser.close();
+    cdp.close();
     p.stop(`PDF generated (${totalSlides} slides).`);
     outro(pc.green(`Output: ${pdfPath}`));
   } catch (err) {
     p.stop("PDF export failed.");
     const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("Chrome not found")) {
-      console.error(pc.red(msg));
-    } else if (msg.includes("Cannot find package") || msg.includes("MODULE_NOT_FOUND")) {
-      console.error(pc.red("puppeteer-core is required for PDF export."));
-    } else {
-      console.error(pc.red(msg));
-    }
+    console.error(pc.red(msg));
     process.exitCode = 1;
   } finally {
+    chromeProcess?.kill();
     devProcess.kill();
   }
 }
