@@ -1,13 +1,10 @@
-/*
- * reveal.js serif theme
- * Original: https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/serif.css
- * Copyright: Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
- * License: MIT
+/**
+ * A simple theme for reveal.js presentations, similar
+ * to the default theme. The accent color is brown.
  *
- * Selectors adapted for create-slides-app engine.
+ * This theme is Copyright (C) 2012-2013 Owen Versteeg, http://owenversteeg.com - it is MIT licensed.
  */
-
-[data-theme="reveal.js-serif"] .slide a {
+.reveal a {
   line-height: 1.3em;
 }
 
@@ -15,7 +12,10 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   color: #fff;
 }
 
-[data-theme="reveal.js-serif"] {
+/*********************************************
+ * GLOBAL STYLES
+ *********************************************/
+:root {
   --r-background-color: #F0F1EB;
   --r-main-font: Palatino Linotype, Book Antiqua, Palatino, FreeSerif, serif;
   --r-main-font-size: 40px;
@@ -44,42 +44,45 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   --r-overlay-element-fg-color: 240, 240, 240;
 }
 
-[data-theme="reveal.js-serif"] body {
+.reveal-viewport {
   background: #F0F1EB;
   background-color: var(--r-background-color);
 }
 
-[data-theme="reveal.js-serif"] .deck {
+.reveal {
   font-family: var(--r-main-font);
   font-size: var(--r-main-font-size);
   font-weight: normal;
   color: var(--r-main-color);
 }
 
-[data-theme="reveal.js-serif"] .slide ::selection {
+.reveal ::selection {
   color: var(--r-selection-color);
   background: var(--r-selection-background-color);
   text-shadow: none;
 }
 
-[data-theme="reveal.js-serif"] .slide ::-moz-selection {
+.reveal ::-moz-selection {
   color: var(--r-selection-color);
   background: var(--r-selection-background-color);
   text-shadow: none;
 }
 
-[data-theme="reveal.js-serif"] .slide,
-[data-theme="reveal.js-serif"] .slide {
+.reveal .slides section,
+.reveal .slides section > section {
   line-height: 1.3;
   font-weight: inherit;
 }
 
-[data-theme="reveal.js-serif"] .slide h1,
-[data-theme="reveal.js-serif"] .slide h2,
-[data-theme="reveal.js-serif"] .slide h3,
-[data-theme="reveal.js-serif"] .slide h4,
-[data-theme="reveal.js-serif"] .slide h5,
-[data-theme="reveal.js-serif"] .slide h6 {
+/*********************************************
+ * HEADERS
+ *********************************************/
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
   margin: var(--r-heading-margin);
   color: var(--r-heading-color);
   font-family: var(--r-heading-font);
@@ -91,97 +94,102 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   word-wrap: break-word;
 }
 
-[data-theme="reveal.js-serif"] .slide h1 {
+.reveal h1 {
   font-size: var(--r-heading1-size);
 }
 
-[data-theme="reveal.js-serif"] .slide h2 {
+.reveal h2 {
   font-size: var(--r-heading2-size);
 }
 
-[data-theme="reveal.js-serif"] .slide h3 {
+.reveal h3 {
   font-size: var(--r-heading3-size);
 }
 
-[data-theme="reveal.js-serif"] .slide h4 {
+.reveal h4 {
   font-size: var(--r-heading4-size);
 }
 
-[data-theme="reveal.js-serif"] .slide h1 {
+.reveal h1 {
   text-shadow: var(--r-heading1-text-shadow);
 }
 
-[data-theme="reveal.js-serif"] .slide p {
+/*********************************************
+ * OTHER
+ *********************************************/
+.reveal p {
   margin: var(--r-block-margin) 0;
   line-height: 1.3;
 }
 
-[data-theme="reveal.js-serif"] .slide h1:last-child,
-[data-theme="reveal.js-serif"] .slide h2:last-child,
-[data-theme="reveal.js-serif"] .slide h3:last-child,
-[data-theme="reveal.js-serif"] .slide h4:last-child,
-[data-theme="reveal.js-serif"] .slide h5:last-child,
-[data-theme="reveal.js-serif"] .slide h6:last-child {
+/* Remove trailing margins after titles */
+.reveal h1:last-child,
+.reveal h2:last-child,
+.reveal h3:last-child,
+.reveal h4:last-child,
+.reveal h5:last-child,
+.reveal h6:last-child {
   margin-bottom: 0;
 }
 
-[data-theme="reveal.js-serif"] .slide img,
-[data-theme="reveal.js-serif"] .slide video,
-[data-theme="reveal.js-serif"] .slide iframe {
+/* Ensure certain elements are never larger than the slide itself */
+.reveal img,
+.reveal video,
+.reveal iframe {
   max-width: 95%;
   max-height: 95%;
 }
 
-[data-theme="reveal.js-serif"] .slide strong,
-[data-theme="reveal.js-serif"] .slide b {
+.reveal strong,
+.reveal b {
   font-weight: bold;
 }
 
-[data-theme="reveal.js-serif"] .slide em {
+.reveal em {
   font-style: italic;
 }
 
-[data-theme="reveal.js-serif"] .slide ol,
-[data-theme="reveal.js-serif"] .slide dl,
-[data-theme="reveal.js-serif"] .slide ul {
+.reveal ol,
+.reveal dl,
+.reveal ul {
   display: inline-block;
   text-align: left;
   margin: 0 0 0 1em;
 }
 
-[data-theme="reveal.js-serif"] .slide ol {
+.reveal ol {
   list-style-type: decimal;
 }
 
-[data-theme="reveal.js-serif"] .slide ul {
+.reveal ul {
   list-style-type: disc;
 }
 
-[data-theme="reveal.js-serif"] .slide ul ul {
+.reveal ul ul {
   list-style-type: square;
 }
 
-[data-theme="reveal.js-serif"] .slide ul ul ul {
+.reveal ul ul ul {
   list-style-type: circle;
 }
 
-[data-theme="reveal.js-serif"] .slide ul ul,
-[data-theme="reveal.js-serif"] .slide ul ol,
-[data-theme="reveal.js-serif"] .slide ol ol,
-[data-theme="reveal.js-serif"] .slide ol ul {
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
   display: block;
   margin-left: 40px;
 }
 
-[data-theme="reveal.js-serif"] .slide dt {
+.reveal dt {
   font-weight: bold;
 }
 
-[data-theme="reveal.js-serif"] .slide dd {
+.reveal dd {
   margin-left: 40px;
 }
 
-[data-theme="reveal.js-serif"] .slide blockquote {
+.reveal blockquote {
   display: block;
   position: relative;
   width: 70%;
@@ -192,16 +200,16 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
 }
 
-[data-theme="reveal.js-serif"] .slide blockquote p:first-child,
-[data-theme="reveal.js-serif"] .slide blockquote p:last-child {
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
   display: inline-block;
 }
 
-[data-theme="reveal.js-serif"] .slide q {
+.reveal q {
   font-style: italic;
 }
 
-[data-theme="reveal.js-serif"] .slide pre {
+.reveal pre {
   display: block;
   position: relative;
   width: 90%;
@@ -214,13 +222,13 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="reveal.js-serif"] .slide code {
+.reveal code {
   font-family: var(--r-code-font);
   text-transform: none;
   tab-size: 2;
 }
 
-[data-theme="reveal.js-serif"] .slide pre code {
+.reveal pre code {
   display: block;
   padding: 5px;
   overflow: auto;
@@ -228,91 +236,128 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   word-wrap: normal;
 }
 
-[data-theme="reveal.js-serif"] .slide .code-wrapper {
+.reveal .code-wrapper {
   white-space: normal;
 }
 
-[data-theme="reveal.js-serif"] .slide .code-wrapper code {
+.reveal .code-wrapper code {
   white-space: pre;
 }
 
-[data-theme="reveal.js-serif"] .slide table {
+.reveal table {
   margin: auto;
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-[data-theme="reveal.js-serif"] .slide table th {
+.reveal table th {
   font-weight: bold;
 }
 
-[data-theme="reveal.js-serif"] .slide table th,
-[data-theme="reveal.js-serif"] .slide table td {
+.reveal table th,
+.reveal table td {
   text-align: left;
   padding: 0.2em 0.5em 0.2em 0.5em;
   border-bottom: 1px solid;
 }
 
-[data-theme="reveal.js-serif"] .slide table th[align=center],
-[data-theme="reveal.js-serif"] .slide table td[align=center] {
+.reveal table th[align=center],
+.reveal table td[align=center] {
   text-align: center;
 }
 
-[data-theme="reveal.js-serif"] .slide table th[align=right],
-[data-theme="reveal.js-serif"] .slide table td[align=right] {
+.reveal table th[align=right],
+.reveal table td[align=right] {
   text-align: right;
 }
 
-[data-theme="reveal.js-serif"] .slide table tbody tr:last-child th,
-[data-theme="reveal.js-serif"] .slide table tbody tr:last-child td {
+.reveal table tbody tr:last-child th,
+.reveal table tbody tr:last-child td {
   border-bottom: none;
 }
 
-[data-theme="reveal.js-serif"] .slide sup {
+.reveal sup {
   vertical-align: super;
   font-size: smaller;
 }
 
-[data-theme="reveal.js-serif"] .slide sub {
+.reveal sub {
   vertical-align: sub;
   font-size: smaller;
 }
 
-[data-theme="reveal.js-serif"] .slide small {
+.reveal small {
   display: inline-block;
   font-size: 0.6em;
   line-height: 1.2em;
   vertical-align: top;
 }
 
-[data-theme="reveal.js-serif"] .slide small * {
+.reveal small * {
   vertical-align: top;
 }
 
-[data-theme="reveal.js-serif"] .slide img {
+.reveal img {
   margin: var(--r-block-margin) 0;
 }
 
-[data-theme="reveal.js-serif"] .slide a {
+/*********************************************
+ * LINKS
+ *********************************************/
+.reveal a {
   color: var(--r-link-color);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
-[data-theme="reveal.js-serif"] .slide a:hover {
+.reveal a:hover {
   color: var(--r-link-color-hover);
   text-shadow: none;
   border: none;
 }
 
-[data-theme="reveal.js-serif"] {
-  --font-sans: var(--r-main-font);
-  --font-mono: var(--r-code-font);
-  --color-bg: var(--r-background-color);
-  --color-surface: var(--r-background-color);
-  --color-text: var(--r-main-color);
-  --color-heading: var(--r-heading-color);
-  --color-accent: var(--r-link-color);
-  --color-code-bg: rgba(127, 127, 127, 0.15);
-  --color-line: rgba(127, 127, 127, 0.2);
+.reveal .roll span:after {
+  color: #fff;
+  background: var(--r-link-color-dark);
+}
+
+/*********************************************
+ * Frame helper
+ *********************************************/
+.reveal .r-frame {
+  border: 4px solid var(--r-main-color);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+.reveal a .r-frame {
+  transition: all 0.15s linear;
+}
+
+.reveal a:hover .r-frame {
+  border-color: var(--r-link-color);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+}
+
+/*********************************************
+ * NAVIGATION CONTROLS
+ *********************************************/
+.reveal .controls {
+  color: var(--r-link-color);
+}
+
+/*********************************************
+ * PROGRESS BAR
+ *********************************************/
+.reveal .progress {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--r-link-color);
+}
+
+/*********************************************
+ * PRINT BACKGROUND
+ *********************************************/
+@media print {
+  .backgrounds {
+    background-color: var(--r-background-color);
+  }
 }

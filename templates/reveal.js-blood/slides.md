@@ -5,7 +5,7 @@ theme: reveal.js-blood
 
 # Reveal.js Blood
 
-An open source slide design adapted from hakimel/reveal.js
+A slide theme from hakimel/reveal.js
 
 reveal.js-blood
 

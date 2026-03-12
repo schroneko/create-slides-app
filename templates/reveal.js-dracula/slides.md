@@ -5,7 +5,7 @@ theme: reveal.js-dracula
 
 # Reveal.js Dracula
 
-An open source slide design adapted from hakimel/reveal.js
+A slide theme from hakimel/reveal.js
 
 reveal.js-dracula
 

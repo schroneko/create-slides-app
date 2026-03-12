@@ -2,14 +2,15 @@
 
 ## hakimel/reveal.js
 
-This template includes style adaptations from:
+This template uses the serif theme CSS from reveal.js, adapted for
+the create-slides-app slide engine.
 
 - Project: `hakimel/reveal.js`
 - Source: <https://github.com/hakimel/reveal.js>
-- Theme source: <https://raw.githubusercontent.com/hakimel/reveal.js/master/dist/theme/serif.css>
+- Theme CSS: <https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/serif.css>
 - License: MIT
 
-Copyright (C) 2011-2026 Hakim El Hattab, http://hakim.se, and reveal.js contributors
+Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
