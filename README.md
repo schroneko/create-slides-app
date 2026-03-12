@@ -19,7 +19,13 @@ npx create-slides-app deck.md --build
 Export to PDF (requires Google Chrome):
 
 ```bash
-npx create-slides-app deck.md --export
+npx create-slides-app deck.md --export pdf
+```
+
+Export to MP4 video with slide transitions (requires Google Chrome and ffmpeg):
+
+```bash
+npx create-slides-app deck.md --export mp4
 ```
 
 Specify a template:
@@ -33,7 +39,7 @@ npx create-slides-app deck.md --template reveal.js-black
 ```bash
 create-slides-app [slides.md] [--template <name>]
 create-slides-app [slides.md] --build
-create-slides-app [slides.md] --export
+create-slides-app [slides.md] --export <pdf|mp4>
 create-slides-app [project-name] [--template <name>]
 ```
 
@@ -41,7 +47,8 @@ create-slides-app [project-name] [--template <name>]
 - `project-name`: Output directory name.
 - `--template`: Template name under `templates/`.
 - `--build`: Build static HTML to `dist/` without starting a dev server.
-- `--export`: Export slides to PDF (requires Google Chrome).
+- `--export pdf`: Export slides to PDF (requires Google Chrome).
+- `--export mp4`: Export slides to MP4 video with fade transitions (requires Google Chrome and ffmpeg).
 
 ## Available templates
 
