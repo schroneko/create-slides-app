@@ -1,6 +1,6 @@
 # create-slides-app
 
-Markdown から React 製スライドアプリを生成する CLI です。
+CLI that generates a React-based slide app from Markdown.
 
 ## Usage
 
@@ -8,21 +8,21 @@ Markdown から React 製スライドアプリを生成する CLI です。
 npx create-slides-app example.md
 ```
 
-指定した Markdown ファイルが存在しなければサンプルスライドを自動生成します。依存のインストール、dev サーバーの起動、ブラウザのオープンまで自動で行います。
+If the specified Markdown file does not exist, a sample slide deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens.
 
-静的 HTML をビルドする場合:
+Build static HTML:
 
 ```bash
 npx create-slides-app deck.md --build
 ```
 
-PDF にエクスポートする場合 (Google Chrome が必要):
+Export to PDF (requires Google Chrome):
 
 ```bash
 npx create-slides-app deck.md --export
 ```
 
-テンプレートを指定する場合:
+Specify a template:
 
 ```bash
 npx create-slides-app deck.md --template reveal.js-black
@@ -37,11 +37,11 @@ create-slides-app [slides.md] --export
 create-slides-app [project-name] [--template <name>]
 ```
 
-- `slides.md`: 取り込む Markdown ファイル。存在しなければサンプルを自動生成。出力先はファイル名から自動決定
-- `project-name`: 生成先ディレクトリ名
-- `--template`: `templates/` 配下にあるテンプレート名だけ指定可能
-- `--build`: dev サーバーを起動せず `dist/` に静的 HTML を出力
-- `--export`: スライドを PDF にエクスポート (Google Chrome が必要)
+- `slides.md`: Markdown file to import. Created automatically if it does not exist. Output directory is derived from the filename.
+- `project-name`: Output directory name.
+- `--template`: Template name under `templates/`.
+- `--build`: Build static HTML to `dist/` without starting a dev server.
+- `--export`: Export slides to PDF (requires Google Chrome).
 
 ## Available templates
 
@@ -63,13 +63,13 @@ All themes are adapted from the original reveal.js theme CSS (MIT license).
 ## Template notes
 
 - React + Vite + TypeScript
-- `slides.md` を読み込み、`---` 区切りでスライド分割
-- 先頭 frontmatter で `title` と `theme` を指定可能
-- 矢印キー、Space、Home、End によるナビゲーション
-- 各テンプレートは単一テーマ構成
-- `THIRD_PARTY_NOTICES.md` に出典とライセンスを同梱
+- Reads `slides.md` and splits slides by `---`
+- Frontmatter supports `title` and `theme`
+- Navigation with arrow keys, Space, Home, and End
+- Each template ships a single theme
+- `THIRD_PARTY_NOTICES.md` includes attribution and license
 
-`slides.md` の例:
+Example `slides.md`:
 
 ```md
 ---
@@ -91,7 +91,7 @@ Welcome
 
 ## Development
 
-ルート CLI:
+Root CLI:
 
 ```bash
 npm install
@@ -102,7 +102,7 @@ npm run build
 npm run smoke
 ```
 
-テンプレートアプリ:
+Template app:
 
 ```bash
 cd templates/reveal.js-black
@@ -113,8 +113,8 @@ npm run dev
 
 ## CI
 
-GitHub Actions で以下を自動実行します。
+GitHub Actions runs:
 
-- ルート CLI の `npm ci`
+- `npm ci` for the root CLI
 - `npm run check`
-- `templates/*` の依存関係インストールと build
+- Install and build for each template under `templates/*`
