@@ -1,0 +1,23 @@
+/*
+ * Academic
+ * Original: https://github.com/kzk4043/marp-theme-academic
+ * Copyright (c) Kazuki Yonemoto
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap");
+
+[data-theme="academic"] {
+  --font-sans: "Noto Sans JP", sans-serif;
+  --font-mono: "Source Code Pro", monospace;
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-text: #333333;
+  --color-heading: #800000;
+  --color-accent: #800000;
+  --color-code-bg: #f5f5f5;
+  --color-line: rgba(0, 0, 0, 0.12);
+}

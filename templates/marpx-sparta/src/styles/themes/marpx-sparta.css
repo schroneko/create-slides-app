@@ -1,0 +1,22 @@
+/*
+ * MarpX Sparta
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;600;700&display=swap");
+
+[data-theme="marpx-sparta"] {
+  --font-sans: "Fira Sans", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #ececec;
+  --color-surface: #abb0b9;
+  --color-text: #343e52;
+  --color-heading: #040d21;
+  --color-accent: #6d6bee;
+  --color-code-bg: rgba(99, 97, 243, 0.12);
+  --color-line: rgba(52, 62, 82, 0.12);
+}

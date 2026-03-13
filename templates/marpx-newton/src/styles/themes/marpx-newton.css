@@ -1,0 +1,22 @@
+/*
+ * MarpX Newton
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Faustina:wght@300;400;600;700&display=swap");
+
+[data-theme="marpx-newton"] {
+  --font-sans: "Faustina", serif;
+  --font-mono: monospace;
+  --color-bg: #eae8e3;
+  --color-surface: #E4E3DF;
+  --color-text: #071636;
+  --color-heading: #002238;
+  --color-accent: #ff3300;
+  --color-code-bg: #fffbe7;
+  --color-line: rgba(7, 22, 54, 0.12);
+}

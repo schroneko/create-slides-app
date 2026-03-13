@@ -1,0 +1,22 @@
+/*
+ * MarpX Copernicus
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;600;700&display=swap");
+
+[data-theme="marpx-copernicus"] {
+  --font-sans: "Fira Sans", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #cad1e4;
+  --color-surface: #eff4fa;
+  --color-text: #3b4963;
+  --color-heading: #040d21;
+  --color-accent: #ff4500;
+  --color-code-bg: #fffbe7;
+  --color-line: rgba(59, 73, 99, 0.12);
+}

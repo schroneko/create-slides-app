@@ -1,0 +1,22 @@
+/*
+ * MarpX Goedel
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@300;400;600;700&display=swap");
+
+[data-theme="marpx-goedel"] {
+  --font-sans: "Fira Sans Condensed", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #eeeeee;
+  --color-surface: #faf7f7;
+  --color-text: #000000;
+  --color-heading: #040d21;
+  --color-accent: #31406b;
+  --color-code-bg: #fffbe7;
+  --color-line: rgba(0, 0, 0, 0.12);
+}

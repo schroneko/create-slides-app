@@ -1,0 +1,22 @@
+/*
+ * Indie Gaia
+ * Original: https://github.com/onwhenrdy/indie-gaia
+ * Copyright (c) Carsten Witt
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap");
+
+[data-theme="indie-gaia"] {
+  --font-sans: system-ui, sans-serif;
+  --font-mono: "Roboto Mono", monospace;
+  --color-bg: #fff8e1;
+  --color-surface: #fff8e1;
+  --color-text: #455a64;
+  --color-heading: #0288d1;
+  --color-accent: #0288d1;
+  --color-code-bg: rgba(0, 0, 0, 0.05);
+  --color-line: rgba(69, 90, 100, 0.12);
+}

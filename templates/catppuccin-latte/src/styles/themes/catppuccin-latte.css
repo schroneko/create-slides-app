@@ -1,0 +1,20 @@
+/*
+ * Catppuccin Latte
+ * Original: https://github.com/catppuccin/reveal.js
+ * Copyright (c) Catppuccin contributors
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+[data-theme="catppuccin-latte"] {
+  --font-sans: system-ui, sans-serif;
+  --font-mono: monospace;
+  --color-bg: #eff1f5;
+  --color-surface: #e6e9ef;
+  --color-text: #4c4f69;
+  --color-heading: #1e66f5;
+  --color-accent: #7287fd;
+  --color-code-bg: #dce0e8;
+  --color-line: rgba(76, 79, 105, 0.15);
+}

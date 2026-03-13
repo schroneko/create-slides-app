@@ -1,0 +1,22 @@
+/*
+ * MarpX Einstein
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600&display=swap");
+
+[data-theme="marpx-einstein"] {
+  --font-sans: "Source Sans Pro", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #3e3f42;
+  --color-surface: #3e3f42;
+  --color-text: #edf2f5;
+  --color-heading: #f8e3b5;
+  --color-accent: #ff8f07;
+  --color-code-bg: rgba(255, 255, 255, 0.1);
+  --color-line: rgba(237, 242, 245, 0.12);
+}

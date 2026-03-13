@@ -1,0 +1,20 @@
+/*
+ * Cybertopia
+ * Original: https://github.com/noraj/cybertopia-marp
+ * Copyright (c) noraj
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+[data-theme="cybertopia"] {
+  --font-sans: system-ui, sans-serif;
+  --font-mono: monospace;
+  --color-bg: #000000;
+  --color-surface: #101010;
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-accent: #02c797;
+  --color-code-bg: #101010;
+  --color-line: rgba(2, 199, 151, 0.2);
+}

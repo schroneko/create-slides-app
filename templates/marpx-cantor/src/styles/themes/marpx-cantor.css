@@ -1,0 +1,22 @@
+/*
+ * MarpX Cantor
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.cdnfonts.com/css/charter-itc-tt");
+
+[data-theme="marpx-cantor"] {
+  --font-sans: "Charter", serif;
+  --font-mono: monospace;
+  --color-bg: #f7f7f7;
+  --color-surface: #e8e8e8;
+  --color-text: #2e2e2e;
+  --color-heading: #242060;
+  --color-accent: #f0a211;
+  --color-code-bg: #fffbe7;
+  --color-line: rgba(46, 46, 46, 0.12);
+}

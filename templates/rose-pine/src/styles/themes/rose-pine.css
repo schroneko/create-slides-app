@@ -1,0 +1,20 @@
+/*
+ * Rose Pine
+ * Original: https://github.com/RAINBOWFLESH/rose-pine-marp
+ * Copyright (c) RAINBOWFLESH
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+[data-theme="rose-pine"] {
+  --font-sans: system-ui, sans-serif;
+  --font-mono: monospace;
+  --color-bg: #191724;
+  --color-surface: #1f1d2e;
+  --color-text: #e0def4;
+  --color-heading: #ebbcba;
+  --color-accent: #c4a7e7;
+  --color-code-bg: #26233a;
+  --color-line: rgba(224, 222, 244, 0.12);
+}

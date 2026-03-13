@@ -1,14 +1,26 @@
 # create-slides-app
 
-CLI that turns any Markdown file into a presentation. One command, no config.
+Turn any Markdown file into a ready-to-present slide app.
 
-## Usage
+- One command to scaffold, run, build, or export
+- 55 built-in templates, including reveal.js variants and curated external themes
+- Presenter mode, syntax highlighting, math, Mermaid, PDF export, and MP4 export
+
+Good fit for people who want something simpler than wiring reveal.js by hand, but more app-like than a single static deck file.
+
+## Quick start
 
 ```bash
 npx create-slides-app slides.md
 ```
 
 If the Markdown file does not exist, a sample deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens. Running the same command again on the same file reuses the existing project directory.
+
+Choose a specific template:
+
+```bash
+npx create-slides-app deck.md --template academic
+```
 
 Build static HTML:
 
@@ -26,12 +38,6 @@ Export to MP4 video with fade transitions (requires Google Chrome and ffmpeg):
 
 ```bash
 npx create-slides-app deck.md --export mp4
-```
-
-Specify a template:
-
-```bash
-npx create-slides-app deck.md --template reveal.js-dracula
 ```
 
 ## CLI options
@@ -181,20 +187,12 @@ Press P to open it.
 
 ## Available templates
 
-- `reveal.js-black`
-- `reveal.js-white`
-- `reveal.js-league`
-- `reveal.js-beige`
-- `reveal.js-sky`
-- `reveal.js-night`
-- `reveal.js-serif`
-- `reveal.js-simple`
-- `reveal.js-solarized`
-- `reveal.js-blood`
-- `reveal.js-moon`
-- `reveal.js-dracula`
+Templates are auto-discovered from `templates/`. The repository currently ships 55 templates:
 
-All themes are adapted from the original reveal.js theme CSS (MIT license). Each template includes `THIRD_PARTY_NOTICES.md` with full attribution.
+- reveal.js adapted: `reveal.js-black`, `reveal.js-white`, `reveal.js-league`, `reveal.js-beige`, `reveal.js-sky`, `reveal.js-night`, `reveal.js-serif`, `reveal.js-simple`, `reveal.js-solarized`, `reveal.js-blood`, `reveal.js-moon`, `reveal.js-dracula`, `reveal.js-black-contrast`, `reveal.js-white-contrast`
+- external adapted: `academic`, `border`, `bw`, `catppuccin-frappe`, `catppuccin-latte`, `colors-blue`, `colors-green`, `colors-orange`, `colors-pink`, `colors-purple`, `colors-red`, `cybertopia`, `dracula-marp`, `gradient`, `graph-paper`, `hull-blue`, `indie-gaia`, `marpx-cantor`, `marpx-church`, `marpx-copernicus`, `marpx-einstein`, `marpx-frankfurt`, `marpx-galileo`, `marpx-gauss`, `marpx-goedel`, `marpx-gropius`, `marpx-haskell`, `marpx-hobbes`, `marpx-lorca`, `marpx-newton`, `marpx-socrates`, `marpx-sparta`, `olive`, `olive-gold`, `olive-invert`, `robot-lung`, `rose-pine`, `rose-pine-dawn`, `rose-pine-moon`, `sunblind`, `wave`
+
+Each template includes `THIRD_PARTY_NOTICES.md` with attribution for the original upstream theme.
 
 ## Tech stack
 
@@ -214,7 +212,7 @@ npm run build
 npm run smoke
 ```
 
-`npm run check` runs the CLI build, smoke test, and seed template build.
+`npm run check` runs the CLI build, smoke test, template structure validation, and sample template builds.
 
 Template development:
 
@@ -228,4 +226,4 @@ The seed template (`reveal.js-black`) contains the authoritative source for the 
 
 ## CI
 
-GitHub Actions runs `npm ci` followed by `npm run check` (CLI build, smoke test, seed template build).
+GitHub Actions runs `npm ci` followed by `npm run check` (CLI build, smoke test, template validation, sample template builds).

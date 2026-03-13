@@ -1,0 +1,23 @@
+/*
+ * Dracula
+ * Original: https://github.com/dracula/marp
+ * Copyright (c) Daniel Nicolas Gisolfi
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap");
+
+[data-theme="dracula-marp"] {
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --color-bg: #282a36;
+  --color-surface: #282a36;
+  --color-text: #f8f8f2;
+  --color-heading: #ff79c6;
+  --color-accent: #8be9fd;
+  --color-code-bg: #44475a;
+  --color-line: rgba(248, 248, 242, 0.12);
+}

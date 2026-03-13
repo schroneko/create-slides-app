@@ -1,0 +1,23 @@
+/*
+ * Colors Blue
+ * Original: https://github.com/matsubara0507/marp-themes
+ * Copyright (c) MATSUBARA Nobutada
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap");
+
+[data-theme="colors-blue"] {
+  --font-sans: "Lato", sans-serif;
+  --font-mono: "Roboto Mono", monospace;
+  --color-bg: #FFF2DD;
+  --color-surface: #FFF2DD;
+  --color-text: #465A65;
+  --color-heading: #01BBD4;
+  --color-accent: #01BBD4;
+  --color-code-bg: rgba(70, 90, 101, 0.1);
+  --color-line: rgba(70, 90, 101, 0.12);
+}

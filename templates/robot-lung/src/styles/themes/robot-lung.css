@@ -1,0 +1,22 @@
+/*
+ * Robot Lung
+ * Original: https://github.com/dzello/revealjs-themes
+ * Copyright (c) Josh Dzielak
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;700&display=swap");
+
+[data-theme="robot-lung"] {
+  --font-sans: "Roboto Slab", serif;
+  --font-mono: monospace;
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-text: #363636;
+  --color-heading: #141414;
+  --color-accent: #FF4081;
+  --color-code-bg: rgba(0, 0, 0, 0.05);
+  --color-line: rgba(54, 54, 54, 0.12);
+}
