@@ -51,9 +51,7 @@ const helpUsageLines = [
   "create-slides-app [slides.md] --export <pdf|mp4>",
 ];
 
-const helpExampleLines = [
-  "create-slides-app deck.md --theme academic",
-];
+const helpExampleLines = ["create-slides-app deck.md --theme academic"];
 
 const helpNoteLines = [
   `Shared runtimes are stored under ${resourcesDirName}/<theme>/`,
@@ -142,7 +140,9 @@ function formatHelpOption(spec: CliFlagSpec, width: number): string {
 function printHelp(): void {
   const optionWidth =
     Math.max(
-      ...cliFlagSpecs.map((spec) => spec.flags.join(", ").length + (spec.valueName ? spec.valueName.length + 1 : 0)),
+      ...cliFlagSpecs.map(
+        (spec) => spec.flags.join(", ").length + (spec.valueName ? spec.valueName.length + 1 : 0),
+      ),
     ) + 2;
 
   console.log(
@@ -594,9 +594,7 @@ function prepareThemeWorkspace(targetDir: string, theme: string): void {
   }
 
   const indexCss = fs.readFileSync(indexCssPath, "utf8");
-  const fontImports = indexCss
-    .split("\n")
-    .filter((line) => line.startsWith('@import url('));
+  const fontImports = indexCss.split("\n").filter((line) => line.startsWith("@import url("));
 
   for (const entry of fs.readdirSync(themeDir)) {
     if (entry === "index.css" || entry === `${theme}.css`) {

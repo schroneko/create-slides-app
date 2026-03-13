@@ -1,6 +1,6 @@
 {
   "name": "create-slides-app",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Create a Markdown-based slide presentation app with React",
   "keywords": [
     "cli",
@@ -35,6 +35,8 @@
     "check": "npm run build && npm run smoke && npm run check:template",
     "check:template": "node --import tsx ./scripts/check-templates.ts",
     "dev": "tsup src/cli.ts --format esm --watch",
+    "format": "npx oxfmt --write \"src/**/*.ts\" \"scripts/**/*.ts\" \"templates/default/src/**/*.ts\" \"templates/default/src/**/*.tsx\" \"templates/default/vite.config.ts\"",
+    "format:check": "npx oxfmt --check \"src/**/*.ts\" \"scripts/**/*.ts\" \"templates/default/src/**/*.ts\" \"templates/default/src/**/*.tsx\" \"templates/default/vite.config.ts\"",
     "generate:templates": "node --import tsx ./scripts/generate-templates.ts",
     "smoke": "node --import tsx ./scripts/smoke.ts",
     "prepublishOnly": "npm run build && npm run smoke"

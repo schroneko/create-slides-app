@@ -33,7 +33,10 @@ export function extractFrontmatter(source: string): FrontmatterResult {
   }
 
   const rawFrontmatter = lines.slice(1, delimiterIndex).join("\n");
-  const content = lines.slice(delimiterIndex + 1).join("\n").trim();
+  const content = lines
+    .slice(delimiterIndex + 1)
+    .join("\n")
+    .trim();
 
   try {
     const parsed = parse(rawFrontmatter);

@@ -84,7 +84,9 @@ try {
 
     const themeNames = manifest as string[];
     if (themeNames.length !== 1 || themeNames[0] !== smokeCase.expectedTheme) {
-      throw new Error(`${smokeCase.label} themes.json should contain only ${smokeCase.expectedTheme}`);
+      throw new Error(
+        `${smokeCase.label} themes.json should contain only ${smokeCase.expectedTheme}`,
+      );
     }
 
     const themePath = path.join(
@@ -95,7 +97,9 @@ try {
       `${smokeCase.expectedTheme}.css`,
     );
     if (!fs.existsSync(themePath)) {
-      throw new Error(`${smokeCase.label} missing theme stylesheet: ${smokeCase.expectedTheme}.css`);
+      throw new Error(
+        `${smokeCase.label} missing theme stylesheet: ${smokeCase.expectedTheme}.css`,
+      );
     }
 
     if (fs.existsSync(path.join(smokeCase.targetDir, "slides.md"))) {
@@ -177,12 +181,23 @@ try {
   }
 
   const resyncedMarkdown = fs.readFileSync(path.join(tempRoot, "input-deck.md"), "utf8");
-  if (resyncedMarkdown !== "---\ntheme: reveal.js-black\n---\n\n# Imported Deck\n\nUpdated from source.\n") {
+  if (
+    resyncedMarkdown !==
+    "---\ntheme: reveal.js-black\n---\n\n# Imported Deck\n\nUpdated from source.\n"
+  ) {
     throw new Error("source markdown did not refresh as expected");
   }
 
   const copiedThemeCss = fs.readFileSync(
-    path.join(tempRoot, "themes", "reveal.js-black", "src", "styles", "themes", "reveal.js-black.css"),
+    path.join(
+      tempRoot,
+      "themes",
+      "reveal.js-black",
+      "src",
+      "styles",
+      "themes",
+      "reveal.js-black.css",
+    ),
     "utf8",
   );
 
