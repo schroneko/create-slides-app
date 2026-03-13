@@ -172,7 +172,7 @@ function renderParser(themeId: string): string {
 function renderMain(themeId: string): string {
   return `import { createRoot } from "react-dom/client";
 import { App } from "./app";
-import slidesRaw from "../__SLIDES_MD__?raw";
+import slidesRaw from "../example.md?raw";
 import "./styles/base.css";
 import "./styles/themes/${themeId}.css";
 
@@ -206,7 +206,7 @@ ${dirName}
 
 - Markdown slides split by \`---\`
 - Arrow keys, Space, Home, and End all work
-- Edit \`slides.md\` to replace this sample
+- Edit this file to replace this sample
 
 ---
 
@@ -278,6 +278,7 @@ for (const theme of themes) {
 
   writeFile(path.join(targetDir, "src/engine/parser.ts"), renderParser(dirName));
   writeFile(path.join(targetDir, "src/main.tsx"), renderMain(dirName));
+  writeFile(path.join(targetDir, "example.md"), renderSlides(dirName, theme.title));
   writeFile(path.join(targetDir, "THIRD_PARTY_NOTICES.md"), renderThirdPartyNotice(theme.name));
   writeFile(path.join(targetDir, "src/styles/themes", `${dirName}.css`), adaptedCss);
 }

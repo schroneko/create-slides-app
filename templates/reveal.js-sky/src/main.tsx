@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { App } from "./app";
-import slidesRaw from "../__SLIDES_MD__?raw";
+import slidesRaw from "../example.md?raw";
 import "./styles/base.css";
 import "./styles/themes/reveal.js-sky.css";
 

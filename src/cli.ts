@@ -97,6 +97,10 @@ function parseArgs(argv: string[]): CliOptions {
     throw new Error(`Unknown argument: ${arg}`);
   }
 
+  if (options.build && options.exportFormat) {
+    throw new Error("--build and --export cannot be used together");
+  }
+
   return options;
 }
 
@@ -273,6 +277,7 @@ async function startDevServer(targetDir: string, port: number): Promise<ReturnTy
 
   await new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(() => {
+      devProcess.kill();
       reject(new Error("Dev server failed to start within 30 seconds"));
     }, 30_000);
 
@@ -387,70 +392,75 @@ async function captureSlides(
 ): Promise<{ screenshots: Buffer[]; cdp: CdpClient; chromeProcess: ReturnType<typeof spawn> }> {
   const chromeProcess = await launchHeadlessChrome(debugPort);
 
-  const targetsRes = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
-  const targets = (await targetsRes.json()) as { webSocketDebuggerUrl: string; type: string }[];
-  const pageTarget = targets.find((t) => t.type === "page");
+  try {
+    const targetsRes = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
+    const targets = (await targetsRes.json()) as { webSocketDebuggerUrl: string; type: string }[];
+    const pageTarget = targets.find((t) => t.type === "page");
 
-  if (!pageTarget) {
-    throw new Error("No page target found in Chrome");
-  }
-
-  const cdp = await CdpClient.connect(pageTarget.webSocketDebuggerUrl);
-
-  await cdp.send("Emulation.setDeviceMetricsOverride", {
-    width: 1280,
-    height: 720,
-    deviceScaleFactor: 2,
-    mobile: false,
-  });
-
-  await cdp.send("Page.enable");
-  await cdp.send("Page.navigate", { url: devUrl });
-
-  await new Promise((r) => setTimeout(r, 2000));
-
-  const slideCountResult = await cdp.send("Runtime.evaluate", {
-    expression: `(() => {
-      const el = document.querySelector(".slide-number");
-      if (!el) return 1;
-      const match = el.textContent?.match(/(\\d+)\\s*\\/\\s*(\\d+)/);
-      return match ? parseInt(match[2], 10) : 1;
-    })()`,
-    returnByValue: true,
-  });
-
-  const totalSlides = (slideCountResult.result?.result as { value: number })?.value ?? 1;
-  const screenshots: Buffer[] = [];
-
-  for (let i = 0; i < totalSlides; i++) {
-    if (i > 0) {
-      await cdp.send("Input.dispatchKeyEvent", {
-        type: "keyDown",
-        key: "ArrowRight",
-        code: "ArrowRight",
-        windowsVirtualKeyCode: 39,
-        nativeVirtualKeyCode: 39,
-      });
-      await cdp.send("Input.dispatchKeyEvent", {
-        type: "keyUp",
-        key: "ArrowRight",
-        code: "ArrowRight",
-        windowsVirtualKeyCode: 39,
-        nativeVirtualKeyCode: 39,
-      });
-      await new Promise((r) => setTimeout(r, 300));
+    if (!pageTarget) {
+      throw new Error("No page target found in Chrome");
     }
 
-    const screenshotResult = await cdp.send("Page.captureScreenshot", {
-      format: "png",
-      clip: { x: 0, y: 0, width: 1280, height: 720, scale: 1 },
+    const cdp = await CdpClient.connect(pageTarget.webSocketDebuggerUrl);
+
+    await cdp.send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 720,
+      deviceScaleFactor: 2,
+      mobile: false,
     });
 
-    const screenshotData = (screenshotResult.result?.data as string) ?? "";
-    screenshots.push(Buffer.from(screenshotData, "base64"));
-  }
+    await cdp.send("Page.enable");
+    await cdp.send("Page.navigate", { url: devUrl });
 
-  return { screenshots, cdp, chromeProcess };
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const slideCountResult = await cdp.send("Runtime.evaluate", {
+      expression: `(() => {
+        const el = document.querySelector(".slide-number");
+        if (!el) return 1;
+        const match = el.textContent?.match(/(\\d+)\\s*\\/\\s*(\\d+)/);
+        return match ? parseInt(match[2], 10) : 1;
+      })()`,
+      returnByValue: true,
+    });
+
+    const totalSlides = (slideCountResult.result?.result as { value: number })?.value ?? 1;
+    const screenshots: Buffer[] = [];
+
+    for (let i = 0; i < totalSlides; i++) {
+      if (i > 0) {
+        await cdp.send("Input.dispatchKeyEvent", {
+          type: "keyDown",
+          key: "ArrowRight",
+          code: "ArrowRight",
+          windowsVirtualKeyCode: 39,
+          nativeVirtualKeyCode: 39,
+        });
+        await cdp.send("Input.dispatchKeyEvent", {
+          type: "keyUp",
+          key: "ArrowRight",
+          code: "ArrowRight",
+          windowsVirtualKeyCode: 39,
+          nativeVirtualKeyCode: 39,
+        });
+        await new Promise((r) => setTimeout(r, 300));
+      }
+
+      const screenshotResult = await cdp.send("Page.captureScreenshot", {
+        format: "png",
+        clip: { x: 0, y: 0, width: 1280, height: 720, scale: 1 },
+      });
+
+      const screenshotData = (screenshotResult.result?.data as string) ?? "";
+      screenshots.push(Buffer.from(screenshotData, "base64"));
+    }
+
+    return { screenshots, cdp, chromeProcess };
+  } catch (err) {
+    chromeProcess.kill();
+    throw err;
+  }
 }
 
 async function exportPdf(targetDir: string, outputName: string): Promise<void> {
@@ -614,13 +624,16 @@ async function main(): Promise<void> {
     pkg.name = toPackageName(path.basename(targetDir));
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
-    const mainTsxPath = path.join(targetDir, "src/main.tsx");
-    const mainTsx = fs.readFileSync(mainTsxPath, "utf-8");
-    fs.writeFileSync(mainTsxPath, mainTsx.replace("__SLIDES_MD__", mdFileName));
+    if (mdFileName !== "example.md") {
+      const mainTsxPath = path.join(targetDir, "src/main.tsx");
+      const mainTsx = fs.readFileSync(mainTsxPath, "utf-8");
+      fs.writeFileSync(mainTsxPath, mainTsx.replace("example.md", mdFileName));
+      fs.unlinkSync(path.join(targetDir, "example.md"));
+    }
 
     if (markdownPath) {
       fs.copyFileSync(markdownPath, path.join(targetDir, mdFileName));
-    } else {
+    } else if (mdFileName !== "example.md") {
       fs.writeFileSync(path.join(targetDir, mdFileName), exampleMarkdown);
     }
   }

@@ -29,7 +29,9 @@ export function Deck({ slides, config }: DeckProps): React.ReactElement {
       ) : (
         <div className="slide slide-empty">
           <h1>No slides yet</h1>
-          <p>Add content to <code>slides.md</code> and separate slides with <code>---</code>.</p>
+          <p>
+            Add content to your Markdown file and separate slides with <code>---</code>.
+          </p>
         </div>
       )}
       <div className="slide-number">
