@@ -1052,9 +1052,10 @@ ${scope} {
   };
 }
 
-function generateExternalThemeCss(
-  theme: ExternalThemeEntry,
-): { css: string; fontImports: string[] } {
+function generateExternalThemeCss(theme: ExternalThemeEntry): {
+  css: string;
+  fontImports: string[];
+} {
   const header = `/*
  * ${theme.title}
  * Original: ${theme.source.url}
@@ -1199,9 +1200,7 @@ function renderThemesManifest(themeAssets: ThemeAsset[]): string {
 
 function renderThemeIndex(themeAssets: ThemeAsset[]): string {
   const fontImports = [...new Set(themeAssets.flatMap((theme) => theme.fontImports))];
-  const themeImports = themeAssets
-    .map((theme) => `@import "./${theme.id}.css";`)
-    .sort();
+  const themeImports = themeAssets.map((theme) => `@import "./${theme.id}.css";`).sort();
   return [...fontImports, ...themeImports].join("\n") + "\n";
 }
 
@@ -1302,10 +1301,16 @@ for (const [relativePath, content] of seedFiles) {
 
 writeFile(path.join(defaultTemplateDir, "src/engine/parser.ts"), renderParser());
 writeFile(path.join(defaultTemplateDir, "src/main.tsx"), renderMain());
-writeFile(path.join(defaultTemplateDir, "example.md"), renderSlides("reveal.js-black", "Example Slides"));
+writeFile(
+  path.join(defaultTemplateDir, "example.md"),
+  renderSlides("reveal.js-black", "Example Slides"),
+);
 writeFile(path.join(defaultTemplateDir, "THIRD_PARTY_NOTICES.md"), renderThirdPartyNotice());
 writeFile(path.join(defaultTemplateDir, "themes.json"), renderThemesManifest(themeAssets));
-writeFile(path.join(defaultTemplateDir, "src/styles/themes/index.css"), renderThemeIndex(themeAssets));
+writeFile(
+  path.join(defaultTemplateDir, "src/styles/themes/index.css"),
+  renderThemeIndex(themeAssets),
+);
 
 for (const theme of themeAssets) {
   writeFile(path.join(defaultTemplateDir, "src/styles/themes", `${theme.id}.css`), theme.css);
