@@ -1,14 +1,14 @@
 # create-slides-app
 
-CLI that generates a React-based slide app from Markdown.
+CLI that turns any Markdown file into a presentation. One command, no config.
 
 ## Usage
 
 ```bash
-npx create-slides-app example.md
+npx create-slides-app slides.md
 ```
 
-If the specified Markdown file does not exist, a sample slide deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens. Running the same command again reuses the existing project directory without re-scaffolding.
+If the Markdown file does not exist, a sample deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens. Running the same command again on the same file reuses the existing project directory.
 
 Build static HTML:
 
@@ -22,7 +22,7 @@ Export to PDF (requires Google Chrome):
 npx create-slides-app deck.md --export pdf
 ```
 
-Export to MP4 video with slide transitions (requires Google Chrome and ffmpeg):
+Export to MP4 video with fade transitions (requires Google Chrome and ffmpeg):
 
 ```bash
 npx create-slides-app deck.md --export mp4
@@ -31,24 +31,132 @@ npx create-slides-app deck.md --export mp4
 Specify a template:
 
 ```bash
-npx create-slides-app deck.md --template reveal.js-black
+npx create-slides-app deck.md --template reveal.js-dracula
 ```
 
 ## CLI options
 
-```bash
+```
 create-slides-app [slides.md] [--template <name>]
 create-slides-app [slides.md] --build
 create-slides-app [slides.md] --export <pdf|mp4>
 create-slides-app [project-name] [--template <name>]
 ```
 
-- `slides.md`: Markdown file to import. Created automatically if it does not exist. Output directory is derived from the filename.
-- `project-name`: Output directory name.
-- `--template`: Template name under `templates/`.
-- `--build`: Build static HTML to `dist/` without starting a dev server.
-- `--export pdf`: Export slides to PDF (requires Google Chrome).
-- `--export mp4`: Export slides to MP4 video with fade transitions (requires Google Chrome and ffmpeg).
+- `slides.md` -- Markdown file to use. Created if it does not exist. The output directory name is derived from the filename (e.g. `deck.md` creates `deck/`).
+- `project-name` -- Output directory name when no Markdown file is given.
+- `--template <name>` -- Template under `templates/`. Prompted interactively if omitted.
+- `--build` -- Build static HTML to `dist/` without starting a dev server.
+- `--export pdf` -- Export slides to PDF. Requires Google Chrome.
+- `--export mp4` -- Export slides to MP4 with fade transitions. Requires Google Chrome and ffmpeg.
+- `--build` and `--export` cannot be used together.
+
+## Markdown features
+
+Slides are separated by `---`. Frontmatter sets the title and theme.
+
+### Basic structure
+
+```md
+---
+title: My Talk
+theme: reveal.js-black
+---
+
+# First Slide
+
+Welcome to the presentation.
+
+---
+
+# Second Slide
+
+- Point one
+- Point two
+```
+
+### Syntax highlighting
+
+Fenced code blocks are highlighted with Shiki (vitesse-dark theme). All languages supported by Shiki work.
+
+````md
+```typescript
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+````
+
+### Math (KaTeX)
+
+Inline math uses single dollar signs, block math uses double dollar signs.
+
+```md
+Inline: $E = mc^2$
+
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+```
+
+### Mermaid diagrams
+
+Fenced code blocks with `mermaid` language render as SVG diagrams.
+
+````md
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[OK]
+    B -->|No| D[Cancel]
+```
+````
+
+### Fragment lists
+
+Add `<!-- fragment -->` before a list to reveal items one at a time with arrow keys.
+
+```md
+<!-- fragment -->
+
+- First point
+- Second point
+- Third point
+```
+
+### Speaker notes
+
+Content below a `Note:` or `Notes:` line is hidden from the slide and shown only in presenter mode.
+
+```md
+# My Slide
+
+Visible content here.
+
+Note:
+This text is only visible in the presenter window.
+Press P to open it.
+```
+
+### Feature summary
+
+- Syntax highlighting -- Fenced code blocks highlighted via Shiki (vitesse-dark theme)
+- Math -- Inline (`$...$`) and block (`$$...$$`) math rendered with KaTeX
+- Mermaid diagrams -- Fenced code blocks with `mermaid` language render as SVG
+- Fragment lists -- `<!-- fragment -->` before a list reveals items one by one
+- Speaker notes -- `Note:` line separates visible content from presenter-only notes
+- Presenter mode -- Press `P` to open a window with notes, next slide preview, and elapsed timer
+- 16:9 aspect ratio -- Slides are fixed at 1280x720 and scale to fit the viewport
+
+## Keyboard shortcuts
+
+| Key                   | Action                     |
+| --------------------- | -------------------------- |
+| Right / Down / Space  | Next slide or fragment     |
+| Left / Up / Backspace | Previous slide or fragment |
+| Home                  | First slide                |
+| End                   | Last slide                 |
+| P                     | Open presenter window      |
 
 ## Available templates
 
@@ -65,40 +173,17 @@ create-slides-app [project-name] [--template <name>]
 - `reveal.js-moon`
 - `reveal.js-dracula`
 
-All themes are adapted from the original reveal.js theme CSS (MIT license).
+All themes are adapted from the original reveal.js theme CSS (MIT license). Each template includes `THIRD_PARTY_NOTICES.md` with full attribution.
 
-## Template notes
+## Tech stack
 
 - React + Vite + TypeScript
-- Reads the Markdown file (same name as the input, e.g. `deck.md`) and splits slides by `---`
-- Frontmatter supports `title` and `theme`
-- Navigation with arrow keys, Space, Home, and End
-- Each template ships a single theme
-- `THIRD_PARTY_NOTICES.md` includes attribution and license
-
-Example Markdown:
-
-```md
----
-title: Demo Deck
-theme: reveal.js-black
----
-
-# Intro
-
-Welcome
-
----
-
-# Next
-
-- Item 1
-- Item 2
-```
+- unified / remark / rehype pipeline for Markdown processing
+- Shiki for syntax highlighting
+- KaTeX for math rendering
+- Mermaid for diagrams
 
 ## Development
-
-Root CLI:
 
 ```bash
 npm install
@@ -108,18 +193,18 @@ npm run build
 npm run smoke
 ```
 
-Template app:
+`npm run check` runs the CLI build, smoke test, and seed template build.
+
+Template development:
 
 ```bash
 cd templates/reveal.js-black
 npm install
-npm run build
 npm run dev
 ```
 
+The seed template (`reveal.js-black`) contains the authoritative source for the slide engine. All other templates are generated from it by `npm run generate:templates`.
+
 ## CI
 
-GitHub Actions runs:
-
-- `npm ci` for the root CLI
-- `npm run check` (CLI build, smoke test, seed template build)
+GitHub Actions runs `npm ci` followed by `npm run check` (CLI build, smoke test, seed template build).
