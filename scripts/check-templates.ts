@@ -1,27 +1,27 @@
-import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const repoRoot = process.cwd();
-const templatesRoot = path.join(repoRoot, "templates");
+const seedTemplate = path.join(repoRoot, "templates", "reveal.js-black");
 
-const templates = fs
-  .readdirSync(templatesRoot, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name)
-  .sort();
+const install = spawnSync("npm", ["install"], {
+  cwd: seedTemplate,
+  stdio: "inherit",
+  shell: process.platform === "win32",
+});
 
-for (const template of templates) {
-  const templateDir = path.join(templatesRoot, template);
-  const result = spawnSync("npm", ["run", "build"], {
-    cwd: templateDir,
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
-
-  if (result.status !== 0) {
-    throw new Error(`Template build failed: ${template}`);
-  }
+if (install.status !== 0) {
+  throw new Error("Seed template install failed");
 }
 
-console.log(`Verified ${templates.length} templates.`);
+const build = spawnSync("npm", ["run", "build"], {
+  cwd: seedTemplate,
+  stdio: "inherit",
+  shell: process.platform === "win32",
+});
+
+if (build.status !== 0) {
+  throw new Error("Seed template build failed");
+}
+
+console.log("Seed template (reveal.js-black) verified.");

@@ -103,7 +103,6 @@ Root CLI:
 ```bash
 npm install
 npm run generate:templates
-npm run install:templates
 npm run check
 npm run build
 npm run smoke
@@ -123,5 +122,4 @@ npm run dev
 GitHub Actions runs:
 
 - `npm ci` for the root CLI
-- `npm run check`
-- Install and build for each template under `templates/*`
+- `npm run check` (CLI build, smoke test, seed template build)

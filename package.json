@@ -9,15 +9,15 @@
     "react",
     "slides"
   ],
+  "homepage": "https://github.com/schroneko/create-slides-app#readme",
+  "bugs": {
+    "url": "https://github.com/schroneko/create-slides-app/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/schroneko/create-slides-app.git"
   },
-  "bugs": {
-    "url": "https://github.com/schroneko/create-slides-app/issues"
-  },
-  "homepage": "https://github.com/schroneko/create-slides-app#readme",
   "bin": {
     "create-slides-app": "./dist/cli.js"
   },
@@ -32,7 +32,6 @@
     "check:template": "node --import tsx ./scripts/check-templates.ts",
     "dev": "tsup src/cli.ts --format esm --watch",
     "generate:templates": "node --import tsx ./scripts/generate-templates.ts",
-    "install:templates": "node --import tsx ./scripts/install-templates.ts",
     "smoke": "node --import tsx ./scripts/smoke.ts",
     "prepublishOnly": "npm run build && npm run smoke"
   },

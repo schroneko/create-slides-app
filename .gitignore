@@ -3,4 +3,3 @@ dist
 *.log
 .DS_Store
 HANDOFF.md
-templates/*/package-lock.json
