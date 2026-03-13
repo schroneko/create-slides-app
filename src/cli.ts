@@ -126,30 +126,90 @@ title: Example Slides
 
 # Example Slides
 
-Created with create-slides-app
+Created with **create-slides-app**
+
+Slides are separated by \`---\` in Markdown
 
 ---
 
-# Getting Started
+# Syntax Highlighting
 
-- Edit this file to create your slides
-- Slides are separated by \`---\`
-- Use standard Markdown syntax
-
----
-
-# Code
+Powered by Shiki
 
 \`\`\`typescript
-const message = "Hello, slides!";
-console.log(message);
+interface Slide {
+  title: string;
+  content: string;
+  notes?: string;
+}
+
+function present(slides: Slide[]): void {
+  for (const slide of slides) {
+    render(slide);
+  }
+}
 \`\`\`
 
 ---
 
-# Next Steps
+# Math
 
-Replace this deck with your own content.
+Inline math: $E = mc^2$
+
+Block math:
+
+$$
+\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}
+$$
+
+Powered by KaTeX
+
+---
+
+# Diagrams
+
+\`\`\`mermaid
+graph LR
+    A[Markdown] --> B[create-slides-app]
+    B --> C[Dev Server]
+    B --> D[Static HTML]
+    B --> E[PDF]
+    B --> F[MP4]
+\`\`\`
+
+Powered by Mermaid
+
+---
+
+# Step-by-step Reveal
+
+<!-- fragment -->
+
+- Write your slides in Markdown
+- Run a single command
+- Present in the browser
+- Export to PDF or MP4
+
+---
+
+# Keyboard Shortcuts
+
+| Key | Action |
+|---|---|
+| Arrow Right / Space | Next |
+| Arrow Left / Backspace | Previous |
+| Home / End | First / Last |
+| P | Presenter mode |
+
+---
+
+# Get Started
+
+Edit this file and start presenting
+
+Note:
+These are speaker notes, visible only in presenter mode.
+Press P to open the presenter window with notes, next slide preview, and a timer.
 `;
 
 function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
