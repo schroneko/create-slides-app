@@ -68,6 +68,7 @@ for (const relativePath of [
   "src/engine/navigation.ts",
   "src/engine/parser.ts",
   "src/engine/slide.tsx",
+  "src/engine/presenter.tsx",
   "src/styles/base.css",
 ]) {
   seedFiles.set(relativePath, fs.readFileSync(path.join(seedDir, relativePath), "utf8"));
@@ -173,6 +174,7 @@ function renderMain(themeId: string): string {
   return `import { createRoot } from "react-dom/client";
 import { App } from "./app";
 import slidesRaw from "../example.md?raw";
+import "katex/dist/katex.min.css";
 import "./styles/base.css";
 import "./styles/themes/${themeId}.css";
 

@@ -10,6 +10,8 @@ export interface SlideData {
   index: number;
   content: string;
   frontmatter: Record<string, unknown>;
+  notes: string;
+  fragmentCount: number;
 }
 
 export interface ParsedPresentation {
@@ -56,6 +58,42 @@ function splitSlides(content: string): string[] {
   return sections;
 }
 
+function parseNotes(raw: string): { content: string; notes: string } {
+  const notePattern = /^Notes?:\s*$/m;
+  const match = raw.match(notePattern);
+  if (!match || match.index === undefined) {
+    return { content: raw, notes: "" };
+  }
+  const content = raw.slice(0, match.index).trim();
+  const notes = raw.slice(match.index + match[0].length).trim();
+  return { content, notes };
+}
+
+function countFragments(content: string): number {
+  const lines = content.split("\n");
+  let count = 0;
+  let inFragmentList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (trimmed === "<!-- fragment -->") {
+      inFragmentList = true;
+      continue;
+    }
+    if (inFragmentList) {
+      if (/^[-*+]\s/.test(trimmed) || /^\d+\.\s/.test(trimmed)) {
+        count++;
+      } else if (trimmed === "") {
+        continue;
+      } else {
+        inFragmentList = false;
+      }
+    }
+  }
+
+  return count;
+}
+
 export function parseSlides(markdown: string): ParsedPresentation {
   const { data, content } = extractFrontmatter(markdown);
 
@@ -69,10 +107,14 @@ export function parseSlides(markdown: string): ParsedPresentation {
 
   const slides: SlideData[] = rawSlides.map((raw, index) => {
     const parsed = extractFrontmatter(raw);
+    const { content: slideContent, notes } = parseNotes(parsed.content.trim());
+    const fragmentCount = countFragments(slideContent);
     return {
       index,
-      content: parsed.content.trim(),
+      content: slideContent,
       frontmatter: parsed.data as Record<string, unknown>,
+      notes,
+      fragmentCount,
     };
   });
 
