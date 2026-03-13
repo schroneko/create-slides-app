@@ -20,7 +20,7 @@
     "url": "git+https://github.com/schroneko/create-slides-app.git"
   },
   "bin": {
-    "create-slides-app": "./dist/cli.js"
+    "create-slides-app": "dist/cli.js"
   },
   "files": [
     "dist",
