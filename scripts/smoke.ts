@@ -11,27 +11,28 @@ try {
     {
       label: "project name",
       args: ["Smoke Slides", "--theme", "reveal.js-white", "--scaffold-only"],
-      targetDir: path.join(tempRoot, "Smoke Slides"),
-      expectedPackageName: "smoke-slides",
-      expectedSlides: undefined,
+      targetDir: path.join(tempRoot, "themes", "reveal.js-white"),
+      expectedPackageName: "reveal.js-white",
       expectedTheme: "reveal.js-white",
+      sourceMarkdownPath: path.join(tempRoot, "Smoke Slides.md"),
     },
     {
       label: "markdown import",
       args: ["input-deck.md", "--theme", "reveal.js-black", "--scaffold-only"],
-      targetDir: path.join(tempRoot, "input-deck"),
-      expectedPackageName: "input-deck",
-      expectedSlides:
-        "---\ntheme: reveal.js-black\n---\n\n# Imported Deck\n\nHello from smoke test.\n",
+      targetDir: path.join(tempRoot, "themes", "reveal.js-black"),
+      expectedPackageName: "reveal.js-black",
       expectedTheme: "reveal.js-black",
+      sourceMarkdownPath: path.join(tempRoot, "input-deck.md"),
+      expectedSourceMarkdown:
+        "---\ntheme: reveal.js-black\n---\n\n# Imported Deck\n\nHello from smoke test.\n",
     },
     {
       label: "deprecated template alias",
       args: ["Alias Slides", "--template", "academic", "--scaffold-only"],
-      targetDir: path.join(tempRoot, "Alias Slides"),
-      expectedPackageName: "alias-slides",
-      expectedSlides: undefined,
+      targetDir: path.join(tempRoot, "themes", "academic"),
+      expectedPackageName: "academic",
       expectedTheme: "academic",
+      sourceMarkdownPath: path.join(tempRoot, "Alias Slides.md"),
     },
   ] as const;
 
@@ -68,7 +69,7 @@ try {
       );
     }
 
-    for (const requiredFile of ["src/main.tsx", "src/app.tsx"]) {
+    for (const requiredFile of ["src/main.tsx", "src/app.tsx", "vite.config.ts"]) {
       if (!fs.existsSync(path.join(smokeCase.targetDir, requiredFile))) {
         throw new Error(`${smokeCase.label} missing generated file: ${requiredFile}`);
       }
@@ -82,30 +83,33 @@ try {
     }
 
     const themeNames = manifest as string[];
-    if (!themeNames.includes(smokeCase.expectedTheme)) {
-      throw new Error(`${smokeCase.label} themes.json does not contain ${smokeCase.expectedTheme}`);
+    if (themeNames.length !== 1 || themeNames[0] !== smokeCase.expectedTheme) {
+      throw new Error(`${smokeCase.label} themes.json should contain only ${smokeCase.expectedTheme}`);
     }
 
-    for (const themeName of themeNames) {
-      const themePath = path.join(
-        smokeCase.targetDir,
-        "src",
-        "styles",
-        "themes",
-        `${themeName}.css`,
-      );
-      if (!fs.existsSync(themePath)) {
-        throw new Error(`${smokeCase.label} missing theme stylesheet: ${themeName}.css`);
-      }
+    const themePath = path.join(
+      smokeCase.targetDir,
+      "src",
+      "styles",
+      "themes",
+      `${smokeCase.expectedTheme}.css`,
+    );
+    if (!fs.existsSync(themePath)) {
+      throw new Error(`${smokeCase.label} missing theme stylesheet: ${smokeCase.expectedTheme}.css`);
     }
 
-    if (smokeCase.expectedSlides) {
-      const generatedSlides = fs.readFileSync(
-        path.join(smokeCase.targetDir, "input-deck.md"),
-        "utf8",
-      );
-      if (generatedSlides !== smokeCase.expectedSlides) {
-        throw new Error(`${smokeCase.label} did not copy the source markdown`);
+    if (fs.existsSync(path.join(smokeCase.targetDir, "slides.md"))) {
+      throw new Error(`${smokeCase.label} should not create an internal markdown copy`);
+    }
+
+    if (!fs.existsSync(smokeCase.sourceMarkdownPath)) {
+      throw new Error(`${smokeCase.label} did not leave the source markdown in place`);
+    }
+
+    if (smokeCase.expectedSourceMarkdown) {
+      const sourceMarkdown = fs.readFileSync(smokeCase.sourceMarkdownPath, "utf8");
+      if (sourceMarkdown !== smokeCase.expectedSourceMarkdown) {
+        throw new Error(`${smokeCase.label} did not update the source markdown as expected`);
       }
     }
   }
@@ -172,51 +176,18 @@ try {
     );
   }
 
-  const resyncedSlides = fs.readFileSync(
-    path.join(tempRoot, "input-deck", "input-deck.md"),
-    "utf8",
-  );
-  if (resyncedSlides !== "# Imported Deck\n\nUpdated from source.\n") {
-    throw new Error("existing project did not refresh from the source markdown");
-  }
-
-  fs.writeFileSync(path.join(tempRoot, "input-deck", "input-deck.md"), "# Local change\n");
-  fs.writeFileSync(path.join(tempRoot, "input-deck.md"), "# Imported Deck\n\nUpdated again.\n");
-
-  const conflictResult = spawnSync(
-    process.execPath,
-    [
-      path.join(repoRoot, "dist/cli.js"),
-      "input-deck.md",
-      "--theme",
-      "reveal.js-black",
-      "--scaffold-only",
-    ],
-    {
-      cwd: tempRoot,
-      encoding: "utf8",
-    },
-  );
-
-  if (conflictResult.status === 0) {
-    throw new Error("markdown conflict should have failed");
-  }
-
-  if (
-    !(conflictResult.stderr || conflictResult.stdout).includes(
-      'Refusing to overwrite "input-deck.md" because the project copy was modified after import.',
-    )
-  ) {
-    throw new Error("markdown conflict did not produce the expected error");
+  const resyncedMarkdown = fs.readFileSync(path.join(tempRoot, "input-deck.md"), "utf8");
+  if (resyncedMarkdown !== "---\ntheme: reveal.js-black\n---\n\n# Imported Deck\n\nUpdated from source.\n") {
+    throw new Error("source markdown did not refresh as expected");
   }
 
   const copiedThemeCss = fs.readFileSync(
-    path.join(tempRoot, "input-deck", "src", "styles", "themes", "reveal.js-black.css"),
+    path.join(tempRoot, "themes", "reveal.js-black", "src", "styles", "themes", "reveal.js-black.css"),
     "utf8",
   );
 
   if (!copiedThemeCss.includes('[data-theme="reveal.js-black"]')) {
-    throw new Error("copied template does not include the expected theme stylesheet");
+    throw new Error("copied runtime does not include the expected theme stylesheet");
   }
 
   const autoCreateResult = spawnSync(
@@ -245,22 +216,24 @@ try {
     throw new Error("auto-created example.md does not contain expected content");
   }
 
-  const autoCreateSlides = fs.readFileSync(path.join(tempRoot, "example", "example.md"), "utf8");
-  if (!autoCreateSlides.includes("# Example Slides")) {
-    throw new Error("auto-created project did not copy example.md");
-  }
-
-  if (!autoCreateSlides.includes("theme: reveal.js-black")) {
-    throw new Error("auto-created project did not set the selected theme");
-  }
-
-  const mainTsx = fs.readFileSync(path.join(tempRoot, "example", "src", "main.tsx"), "utf8");
-  if (!mainTsx.includes('"../example.md?raw"')) {
-    throw new Error("main.tsx does not import the correct markdown file");
+  const mainTsx = fs.readFileSync(
+    path.join(tempRoot, "themes", "reveal.js-black", "src", "main.tsx"),
+    "utf8",
+  );
+  if (!mainTsx.includes('"../../../example.md?raw"')) {
+    throw new Error("main.tsx does not import the external markdown file");
   }
 
   if (!mainTsx.includes('"./styles/themes/index.css"')) {
     throw new Error("main.tsx does not import the universal theme index");
+  }
+
+  const viteConfig = fs.readFileSync(
+    path.join(tempRoot, "themes", "reveal.js-black", "vite.config.ts"),
+    "utf8",
+  );
+  if (!viteConfig.includes(JSON.stringify(fs.realpathSync(tempRoot)))) {
+    throw new Error("vite.config.ts does not allow access to the source markdown directory");
   }
 
   const rerunResult = spawnSync(
@@ -280,7 +253,7 @@ try {
 
   if (rerunResult.status !== 0) {
     throw new Error(
-      `re-run on existing directory failed: ${rerunResult.stderr || rerunResult.stdout || "failed"}`,
+      `re-run on existing runtime failed: ${rerunResult.stderr || rerunResult.stdout || "failed"}`,
     );
   }
 
