@@ -5,4 +5,13 @@ import "katex/dist/katex.min.css";
 import "./styles/base.css";
 import "./styles/themes/marpx-haskell.css";
 
-createRoot(document.getElementById("root")!).render(<App markdown={slidesRaw} />);
+const root = createRoot(document.getElementById("root")!);
+root.render(<App markdown={slidesRaw} />);
+
+if (import.meta.hot) {
+  import.meta.hot.accept("../example.md?raw", (mod) => {
+    if (mod) {
+      root.render(<App markdown={mod.default} />);
+    }
+  });
+}
