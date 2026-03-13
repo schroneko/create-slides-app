@@ -14,7 +14,7 @@ Good fit for people who want something simpler than wiring reveal.js by hand, bu
 npx create-slides-app slides.md
 ```
 
-If the Markdown file does not exist, a sample deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens. Running the same command again on the same file reuses the existing project directory.
+If the Markdown file does not exist, a sample deck is created automatically. Dependencies are installed into `themes/<theme>/`, a dev server starts, and the browser opens. Running the same command again on the same file reuses the same theme runtime under `themes/`.
 
 Choose a specific theme:
 
@@ -49,7 +49,7 @@ create-slides-app [slides.md] --export <pdf|mp4>
 create-slides-app [project-name] [--theme <name>]
 ```
 
-- `slides.md` -- Markdown file to use. Created if it does not exist. The output directory name is derived from the filename (e.g. `deck.md` creates `deck/`).
+- `slides.md` -- Markdown file to use. Created if it does not exist. The source file stays where it is, and the generated runtime lives under `themes/<theme>/`.
 - `project-name` -- Output directory name when no Markdown file is given.
 - `--theme <name>` -- Theme name written to frontmatter. Prompted interactively if omitted.
 - `--template <name>` -- Deprecated alias for `--theme`.
@@ -57,6 +57,17 @@ create-slides-app [project-name] [--theme <name>]
 - `--export pdf` -- Export slides to PDF. Requires Google Chrome.
 - `--export mp4` -- Export slides to MP4 with fade transitions. Requires Google Chrome and ffmpeg.
 - `--build` and `--export` cannot be used together.
+
+When you run `create-slides-app deck.md --theme academic`, the directory layout looks like this:
+
+```text
+.
+├── deck.md
+└── themes
+    └── academic
+```
+
+The shared runtime under `themes/academic/` reads `deck.md` directly. It does not create a second visible copy such as `deck/deck.md`.
 
 ## Markdown features
 

@@ -16,6 +16,7 @@ const templatesRoot = path.resolve(__dirname, "..", "templates");
 const defaultTemplateDir = path.join(templatesRoot, "default");
 const themesManifestPath = path.join(defaultTemplateDir, "themes.json");
 const projectStateFile = ".create-slides-app.json";
+const resourcesDirName = "themes";
 
 type ExportFormat = "pdf" | "mp4";
 
@@ -304,12 +305,18 @@ function ensureThemeFrontmatter(content: string, theme: string): string {
   if (endIndex === -1) {
     return content;
   }
-  const frontmatter = trimmed.slice(4, endIndex);
-  if (/^theme\s*:/m.test(frontmatter)) {
-    return content;
-  }
   const insertPos = content.trimStart().indexOf("\n---", 4);
   const prefix = content.slice(0, content.length - trimmed.length);
+  const frontmatter = trimmed.slice(4, endIndex);
+
+  if (/^theme\s*:/m.test(frontmatter)) {
+    const updatedFrontmatter = frontmatter.replace(/^theme\s*:\s*.*$/m, `theme: ${theme}`);
+    if (updatedFrontmatter === frontmatter) {
+      return content;
+    }
+    return prefix + `---\n${updatedFrontmatter}` + trimmed.slice(endIndex);
+  }
+
   return prefix + trimmed.slice(0, insertPos) + `\ntheme: ${theme}` + trimmed.slice(insertPos);
 }
 
@@ -329,6 +336,38 @@ function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
   }
 
   return markdownPath;
+}
+
+function toImportSpecifier(fromDir: string, targetPath: string): string {
+  const relativePath = path.relative(fromDir, targetPath).split(path.sep).join("/");
+  if (relativePath.startsWith(".")) {
+    return relativePath;
+  }
+  return `./${relativePath}`;
+}
+
+function detectThemeFromMarkdown(markdownPath?: string): string | undefined {
+  if (!markdownPath || !fs.existsSync(markdownPath)) {
+    return undefined;
+  }
+
+  const content = fs.readFileSync(markdownPath, "utf8").trimStart();
+  if (!content.startsWith("---\n")) {
+    return undefined;
+  }
+
+  const endIndex = content.indexOf("\n---", 4);
+  if (endIndex === -1) {
+    return undefined;
+  }
+
+  const frontmatter = content.slice(4, endIndex);
+  const match = frontmatter.match(/^theme\s*:\s*(.+)$/m);
+  if (!match) {
+    return undefined;
+  }
+
+  return match[1].trim().replace(/^['"]|['"]$/g, "");
 }
 
 function toPackageName(projectName: string): string {
@@ -370,7 +409,7 @@ function deriveProjectNameFromMarkdown(markdownPath: string): string {
   return fileName || "my-slides";
 }
 
-async function resolveTheme(overrideTheme?: string): Promise<string> {
+async function resolveTheme(overrideTheme?: string, markdownPath?: string): Promise<string> {
   const themes = listThemes();
 
   if (themes.length === 0) {
@@ -382,6 +421,16 @@ async function resolveTheme(overrideTheme?: string): Promise<string> {
       throw new Error(`Unknown theme "${overrideTheme}". Available themes: ${themes.join(", ")}`);
     }
     return overrideTheme;
+  }
+
+  const themeFromMarkdown = detectThemeFromMarkdown(markdownPath);
+  if (themeFromMarkdown) {
+    if (!themes.includes(themeFromMarkdown)) {
+      throw new Error(
+        `Unknown theme "${themeFromMarkdown}" in markdown. Available themes: ${themes.join(", ")}`,
+      );
+    }
+    return themeFromMarkdown;
   }
 
   if (themes.length === 1) {
@@ -404,78 +453,93 @@ async function resolveTheme(overrideTheme?: string): Promise<string> {
   return selected;
 }
 
-function syncMarkdownFile(
-  targetDir: string,
-  markdownPath: string,
-  mdFileName: string,
-  theme?: string,
-  overwriteExistingTarget = false,
-): void {
-  const targetMarkdownPath = path.join(targetDir, mdFileName);
+function syncMarkdownFile(targetDir: string, markdownPath: string, theme?: string): void {
   const rawContent = fs.readFileSync(markdownPath, "utf8");
   const sourceContent = theme ? ensureThemeFrontmatter(rawContent, theme) : rawContent;
   if (theme && sourceContent !== rawContent) {
     fs.writeFileSync(markdownPath, sourceContent);
   }
   const sourceHash = hashContent(sourceContent);
-  const state = readProjectState(targetDir);
-
-  if (overwriteExistingTarget) {
-    fs.writeFileSync(targetMarkdownPath, sourceContent);
-    writeProjectState(targetDir, {
-      markdownFileName: mdFileName,
-      sourceMarkdownPath: markdownPath,
-      sourceHash,
-    });
-    return;
-  }
-
-  if (!fs.existsSync(targetMarkdownPath)) {
-    fs.writeFileSync(targetMarkdownPath, sourceContent);
-    writeProjectState(targetDir, {
-      markdownFileName: mdFileName,
-      sourceMarkdownPath: markdownPath,
-      sourceHash,
-    });
-    return;
-  }
-
-  const targetContent = fs.readFileSync(targetMarkdownPath, "utf8");
-  const targetHash = hashContent(targetContent);
-
-  if (targetHash === sourceHash) {
-    writeProjectState(targetDir, {
-      markdownFileName: mdFileName,
-      sourceMarkdownPath: markdownPath,
-      sourceHash,
-    });
-    return;
-  }
-
-  if (!state) {
-    throw new Error(
-      `Refusing to overwrite "${mdFileName}" in the existing project because it has no import metadata.`,
-    );
-  }
-
-  if (state.markdownFileName !== mdFileName || state.sourceMarkdownPath !== markdownPath) {
-    throw new Error(
-      `Refusing to overwrite "${mdFileName}" because this project was scaffolded from a different markdown source.`,
-    );
-  }
-
-  if (targetHash !== state.sourceHash) {
-    throw new Error(
-      `Refusing to overwrite "${mdFileName}" because the project copy was modified after import.`,
-    );
-  }
-
-  fs.writeFileSync(targetMarkdownPath, sourceContent);
   writeProjectState(targetDir, {
-    markdownFileName: mdFileName,
+    markdownFileName: path.basename(markdownPath),
     sourceMarkdownPath: markdownPath,
     sourceHash,
   });
+}
+
+function resolveRuntimeDir(theme: string): string {
+  return path.resolve(process.cwd(), resourcesDirName, theme);
+}
+
+function renderRuntimeMain(markdownImportPath: string): string {
+  return `import { createRoot } from "react-dom/client";
+import { App } from "./app";
+import slidesRaw from "${markdownImportPath}?raw";
+import "katex/dist/katex.min.css";
+import "./styles/base.css";
+import "./styles/themes/index.css";
+
+const root = createRoot(document.getElementById("root")!);
+root.render(<App markdown={slidesRaw} />);
+
+if (import.meta.hot) {
+  import.meta.hot.accept("${markdownImportPath}?raw", (mod) => {
+    if (mod) {
+      root.render(<App markdown={mod.default} />);
+    }
+  });
+}
+`;
+}
+
+function renderRuntimeViteConfig(sourceMarkdownPath: string): string {
+  return `import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3030,
+    fs: {
+      allow: [${JSON.stringify(path.dirname(sourceMarkdownPath))}],
+    },
+  },
+});
+`;
+}
+
+function configureRuntime(targetDir: string, sourceMarkdownPath: string): void {
+  const mainTsxPath = path.join(targetDir, "src", "main.tsx");
+  const viteConfigPath = path.join(targetDir, "vite.config.ts");
+  const markdownImportPath = toImportSpecifier(path.join(targetDir, "src"), sourceMarkdownPath);
+  fs.writeFileSync(mainTsxPath, renderRuntimeMain(markdownImportPath));
+  fs.writeFileSync(viteConfigPath, renderRuntimeViteConfig(sourceMarkdownPath));
+}
+
+function prepareThemeWorkspace(targetDir: string, theme: string): void {
+  const themeDir = path.join(targetDir, "src", "styles", "themes");
+  const indexCssPath = path.join(themeDir, "index.css");
+  const availableThemePath = path.join(themeDir, `${theme}.css`);
+
+  if (!fs.existsSync(availableThemePath)) {
+    throw new Error(`Theme stylesheet not found in template: ${theme}.css`);
+  }
+
+  const indexCss = fs.readFileSync(indexCssPath, "utf8");
+  const fontImports = indexCss
+    .split("\n")
+    .filter((line) => line.startsWith('@import url('));
+
+  for (const entry of fs.readdirSync(themeDir)) {
+    if (entry === "index.css" || entry === `${theme}.css`) {
+      continue;
+    }
+    fs.rmSync(path.join(themeDir, entry), { recursive: true, force: true });
+  }
+
+  const nextIndexCss = [...fontImports, `@import "./${theme}.css";`].join("\n") + "\n";
+  fs.writeFileSync(indexCssPath, nextIndexCss);
+  fs.writeFileSync(path.join(targetDir, "themes.json"), JSON.stringify([theme], null, 2) + "\n");
 }
 
 async function ensurePortAvailable(port: number): Promise<void> {
@@ -897,13 +961,13 @@ async function main(): Promise<void> {
   const projectName = await resolveProjectName(
     options.projectName ?? (markdownPath ? deriveProjectNameFromMarkdown(markdownPath) : undefined),
   );
-  const targetDir = path.resolve(process.cwd(), projectName);
-  const mdFileName = markdownPath ? path.basename(markdownPath) : `${projectName}.md`;
+  const sourceMarkdownPath = markdownPath ?? path.resolve(process.cwd(), `${projectName}.md`);
+  const theme = await resolveTheme(options.theme, sourceMarkdownPath);
+  const targetDir = resolveRuntimeDir(theme);
+  const outputBaseName = path.basename(sourceMarkdownPath, path.extname(sourceMarkdownPath));
   const alreadyScaffolded = fs.existsSync(targetDir);
 
   if (!alreadyScaffolded) {
-    const theme = await resolveTheme(options.theme);
-
     fs.mkdirSync(path.dirname(targetDir), { recursive: true });
     fs.cpSync(defaultTemplateDir, targetDir, { recursive: true });
 
@@ -912,26 +976,28 @@ async function main(): Promise<void> {
     pkg.name = toPackageName(path.basename(targetDir));
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
-    if (mdFileName !== "example.md") {
-      const mainTsxPath = path.join(targetDir, "src/main.tsx");
-      const mainTsx = fs.readFileSync(mainTsxPath, "utf-8");
-      fs.writeFileSync(mainTsxPath, mainTsx.replaceAll("example.md", mdFileName));
-      fs.unlinkSync(path.join(targetDir, "example.md"));
-    }
+    fs.unlinkSync(path.join(targetDir, "example.md"));
 
     if (markdownPath && fs.existsSync(markdownPath)) {
-      syncMarkdownFile(targetDir, markdownPath, mdFileName, theme, true);
+      syncMarkdownFile(targetDir, markdownPath, theme);
     } else if (markdownPath) {
       const generated = buildExampleMarkdown(theme);
-      fs.writeFileSync(markdownPath, generated);
-      syncMarkdownFile(targetDir, markdownPath, mdFileName, theme, true);
-    } else if (mdFileName !== "example.md") {
-      fs.writeFileSync(path.join(targetDir, mdFileName), buildExampleMarkdown(theme));
+      fs.writeFileSync(sourceMarkdownPath, generated);
+      syncMarkdownFile(targetDir, sourceMarkdownPath, theme);
+    } else {
+      fs.writeFileSync(sourceMarkdownPath, buildExampleMarkdown(theme));
+      syncMarkdownFile(targetDir, sourceMarkdownPath, theme);
     }
   }
 
-  if (alreadyScaffolded && markdownPath) {
-    syncMarkdownFile(targetDir, markdownPath, mdFileName);
+  prepareThemeWorkspace(targetDir, theme);
+  configureRuntime(targetDir, sourceMarkdownPath);
+
+  if (alreadyScaffolded) {
+    if (!fs.existsSync(sourceMarkdownPath)) {
+      fs.writeFileSync(sourceMarkdownPath, buildExampleMarkdown(theme));
+    }
+    syncMarkdownFile(targetDir, sourceMarkdownPath, theme);
   }
 
   if (options.scaffoldOnly) {
@@ -955,12 +1021,12 @@ async function main(): Promise<void> {
   }
 
   if (options.exportFormat === "pdf") {
-    await exportPdf(targetDir, path.basename(targetDir));
+    await exportPdf(targetDir, outputBaseName);
     return;
   }
 
   if (options.exportFormat === "mp4") {
-    await exportMp4(targetDir, path.basename(targetDir));
+    await exportMp4(targetDir, outputBaseName);
     return;
   }
 
@@ -981,21 +1047,6 @@ async function main(): Promise<void> {
   s.stop(`Dev server running at ${pc.cyan(url)}`);
 
   let watcher: fs.FSWatcher | undefined;
-  if (markdownPath) {
-    const targetMarkdownPath = path.join(targetDir, mdFileName);
-    watcher = fs.watch(markdownPath, () => {
-      try {
-        const content = fs.readFileSync(markdownPath, "utf8");
-        fs.writeFileSync(targetMarkdownPath, content);
-        writeProjectState(targetDir, {
-          markdownFileName: mdFileName,
-          sourceMarkdownPath: markdownPath,
-          sourceHash: hashContent(content),
-        });
-      } catch {}
-    });
-  }
-
   const openCommand =
     process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   spawn(openCommand, [url], { stdio: "ignore", detached: true }).unref();
