@@ -3,6 +3,14 @@ import { useNavigation } from "./navigation";
 import { Slide } from "./slide";
 import type { SlideData, PresentationConfig } from "./parser";
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 interface DeckProps {
   slides: SlideData[];
   config: PresentationConfig;
@@ -34,6 +42,45 @@ export function Deck({ slides, config }: DeckProps): React.ReactElement {
     return () => window.removeEventListener("resize", updateScale);
   }, []);
 
+  const updatePresenter = useCallback(
+    (win: Window) => {
+      const activeSlide = slides[currentSlide];
+      const nextSlideData = slides[currentSlide + 1];
+
+      win.document.body.innerHTML = `
+        <div class="presenter-layout">
+          <div class="current-slide">
+            <h3>Current (${currentSlide + 1} / ${slides.length})</h3>
+            <div class="slide-content">${escapeHtml(activeSlide?.content ?? "")}</div>
+          </div>
+          <div class="next-slide">
+            <h3>Next</h3>
+            <div class="slide-content">${escapeHtml(nextSlideData?.content ?? "(end)")}</div>
+          </div>
+          <div class="notes-panel">
+            <h3>Notes</h3>
+            <div class="slide-content">${escapeHtml(activeSlide?.notes ?? "(no notes)")}</div>
+          </div>
+        </div>
+        <div class="timer" id="timer">00:00</div>
+      `;
+
+      if (!(win as Window & { _timerStarted?: boolean })._timerStarted) {
+        (win as Window & { _timerStarted?: boolean })._timerStarted = true;
+        const start = Date.now();
+        const interval = win.setInterval(() => {
+          const elapsed = Math.floor((Date.now() - start) / 1000);
+          const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
+          const secs = String(elapsed % 60).padStart(2, "0");
+          const el = win.document.getElementById("timer");
+          if (el) el.textContent = `${mins}:${secs}`;
+        }, 1000);
+        win.addEventListener("beforeunload", () => win.clearInterval(interval));
+      }
+    },
+    [currentSlide, slides],
+  );
+
   const openPresenter = useCallback(() => {
     if (presenterRef.current && !presenterRef.current.closed) {
       presenterRef.current.focus();
@@ -55,46 +102,14 @@ export function Deck({ slides, config }: DeckProps): React.ReactElement {
       .slide-content { white-space: pre-wrap; font-size: 0.875rem; line-height: 1.6; }
     `;
     win.document.head.appendChild(style);
-  }, []);
+    updatePresenter(win);
+  }, [updatePresenter]);
 
   useEffect(() => {
     const win = presenterRef.current;
     if (!win || win.closed) return;
-
-    const activeSlide = slides[currentSlide];
-    const nextSlideData = slides[currentSlide + 1];
-
-    win.document.body.innerHTML = `
-      <div class="presenter-layout">
-        <div class="current-slide">
-          <h3>Current (${currentSlide + 1} / ${slides.length})</h3>
-          <div class="slide-content">${activeSlide?.content ?? ""}</div>
-        </div>
-        <div class="next-slide">
-          <h3>Next</h3>
-          <div class="slide-content">${nextSlideData?.content ?? "(end)"}</div>
-        </div>
-        <div class="notes-panel">
-          <h3>Notes</h3>
-          <div class="slide-content">${activeSlide?.notes ?? "(no notes)"}</div>
-        </div>
-      </div>
-      <div class="timer" id="timer">00:00</div>
-    `;
-
-    if (!(win as Window & { _timerStarted?: boolean })._timerStarted) {
-      (win as Window & { _timerStarted?: boolean })._timerStarted = true;
-      const start = Date.now();
-      const interval = win.setInterval(() => {
-        const elapsed = Math.floor((Date.now() - start) / 1000);
-        const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
-        const secs = String(elapsed % 60).padStart(2, "0");
-        const el = win.document.getElementById("timer");
-        if (el) el.textContent = `${mins}:${secs}`;
-      }, 1000);
-      win.addEventListener("beforeunload", () => win.clearInterval(interval));
-    }
-  }, [currentSlide, slides]);
+    updatePresenter(win);
+  }, [updatePresenter]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
