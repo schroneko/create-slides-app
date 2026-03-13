@@ -1,0 +1,310 @@
+/*
+ * reveal.js black theme
+ * Original: https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css
+ * Copyright: Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
+ * License: MIT
+ *
+ * Selectors adapted for create-slides-app engine.
+ */
+
+[data-theme="reveal.js-black"] {
+  --r-background-color: #191919;
+  --r-main-font: Source Sans Pro, Helvetica, sans-serif;
+  --r-main-font-size: 42px;
+  --r-main-color: #fff;
+  --r-block-margin: 20px;
+  --r-heading-margin: 0 0 20px 0;
+  --r-heading-font: Source Sans Pro, Helvetica, sans-serif;
+  --r-heading-color: #fff;
+  --r-heading-line-height: 1.2;
+  --r-heading-letter-spacing: normal;
+  --r-heading-text-transform: uppercase;
+  --r-heading-text-shadow: none;
+  --r-heading-font-weight: 600;
+  --r-heading1-text-shadow: none;
+  --r-heading1-size: clamp(1.5em, 4vw, 2.5em);
+  --r-heading2-size: 1.6em;
+  --r-heading3-size: 1.3em;
+  --r-heading4-size: 1em;
+  --r-code-font: monospace;
+  --r-link-color: #42affa;
+  --r-link-color-dark: rgb(19.8216494845, 155.4536082474, 248.7783505155);
+  --r-link-color-hover: rgb(94.35, 187, 250.75);
+  --r-selection-background-color: rgba(66, 175, 250, 0.75);
+  --r-selection-color: #fff;
+  --r-overlay-element-bg-color: 240, 240, 240;
+  --r-overlay-element-fg-color: 0, 0, 0;
+}
+
+[data-theme="reveal.js-black"] body {
+  background: #191919;
+  background-color: var(--r-background-color);
+}
+
+[data-theme="reveal.js-black"] .deck {
+  font-family: var(--r-main-font);
+  font-size: var(--r-main-font-size);
+  font-weight: normal;
+  color: var(--r-main-color);
+}
+
+[data-theme="reveal.js-black"] .slide ::selection {
+  color: var(--r-selection-color);
+  background: var(--r-selection-background-color);
+  text-shadow: none;
+}
+
+[data-theme="reveal.js-black"] .slide ::-moz-selection {
+  color: var(--r-selection-color);
+  background: var(--r-selection-background-color);
+  text-shadow: none;
+}
+
+[data-theme="reveal.js-black"] .slide,
+[data-theme="reveal.js-black"] .slide {
+  line-height: 1.3;
+  font-weight: inherit;
+}
+
+[data-theme="reveal.js-black"] .slide h1,
+[data-theme="reveal.js-black"] .slide h2,
+[data-theme="reveal.js-black"] .slide h3,
+[data-theme="reveal.js-black"] .slide h4,
+[data-theme="reveal.js-black"] .slide h5,
+[data-theme="reveal.js-black"] .slide h6 {
+  margin: var(--r-heading-margin);
+  color: var(--r-heading-color);
+  font-family: var(--r-heading-font);
+  font-weight: var(--r-heading-font-weight);
+  line-height: var(--r-heading-line-height);
+  letter-spacing: var(--r-heading-letter-spacing);
+  text-transform: var(--r-heading-text-transform);
+  text-shadow: var(--r-heading-text-shadow);
+  word-wrap: break-word;
+}
+
+[data-theme="reveal.js-black"] .slide h1 {
+  font-size: var(--r-heading1-size);
+}
+
+[data-theme="reveal.js-black"] .slide h2 {
+  font-size: var(--r-heading2-size);
+}
+
+[data-theme="reveal.js-black"] .slide h3 {
+  font-size: var(--r-heading3-size);
+}
+
+[data-theme="reveal.js-black"] .slide h4 {
+  font-size: var(--r-heading4-size);
+}
+
+[data-theme="reveal.js-black"] .slide h1 {
+  text-shadow: var(--r-heading1-text-shadow);
+}
+
+[data-theme="reveal.js-black"] .slide p {
+  margin: var(--r-block-margin) 0;
+  line-height: 1.3;
+}
+
+[data-theme="reveal.js-black"] .slide h1:last-child,
+[data-theme="reveal.js-black"] .slide h2:last-child,
+[data-theme="reveal.js-black"] .slide h3:last-child,
+[data-theme="reveal.js-black"] .slide h4:last-child,
+[data-theme="reveal.js-black"] .slide h5:last-child,
+[data-theme="reveal.js-black"] .slide h6:last-child {
+  margin-bottom: 0;
+}
+
+[data-theme="reveal.js-black"] .slide img,
+[data-theme="reveal.js-black"] .slide video,
+[data-theme="reveal.js-black"] .slide iframe {
+  max-width: 95%;
+  max-height: 95%;
+}
+
+[data-theme="reveal.js-black"] .slide strong,
+[data-theme="reveal.js-black"] .slide b {
+  font-weight: bold;
+}
+
+[data-theme="reveal.js-black"] .slide em {
+  font-style: italic;
+}
+
+[data-theme="reveal.js-black"] .slide ol,
+[data-theme="reveal.js-black"] .slide dl,
+[data-theme="reveal.js-black"] .slide ul {
+  display: inline-block;
+  text-align: left;
+  margin: 0 0 0 1em;
+}
+
+[data-theme="reveal.js-black"] .slide ol {
+  list-style-type: decimal;
+}
+
+[data-theme="reveal.js-black"] .slide ul {
+  list-style-type: disc;
+}
+
+[data-theme="reveal.js-black"] .slide ul ul {
+  list-style-type: square;
+}
+
+[data-theme="reveal.js-black"] .slide ul ul ul {
+  list-style-type: circle;
+}
+
+[data-theme="reveal.js-black"] .slide ul ul,
+[data-theme="reveal.js-black"] .slide ul ol,
+[data-theme="reveal.js-black"] .slide ol ol,
+[data-theme="reveal.js-black"] .slide ol ul {
+  display: block;
+  margin-left: 40px;
+}
+
+[data-theme="reveal.js-black"] .slide dt {
+  font-weight: bold;
+}
+
+[data-theme="reveal.js-black"] .slide dd {
+  margin-left: 40px;
+}
+
+[data-theme="reveal.js-black"] .slide blockquote {
+  display: block;
+  position: relative;
+  width: 70%;
+  margin: var(--r-block-margin) auto;
+  padding: 5px;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="reveal.js-black"] .slide blockquote p:first-child,
+[data-theme="reveal.js-black"] .slide blockquote p:last-child {
+  display: inline-block;
+}
+
+[data-theme="reveal.js-black"] .slide q {
+  font-style: italic;
+}
+
+[data-theme="reveal.js-black"] .slide pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: var(--r-block-margin) auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: var(--r-code-font);
+  line-height: 1.2em;
+  word-wrap: break-word;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="reveal.js-black"] .slide code {
+  font-family: var(--r-code-font);
+  text-transform: none;
+  tab-size: 2;
+}
+
+[data-theme="reveal.js-black"] .slide pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  max-height: 400px;
+  word-wrap: normal;
+}
+
+[data-theme="reveal.js-black"] .slide .code-wrapper {
+  white-space: normal;
+}
+
+[data-theme="reveal.js-black"] .slide .code-wrapper code {
+  white-space: pre;
+}
+
+[data-theme="reveal.js-black"] .slide table {
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+[data-theme="reveal.js-black"] .slide table th {
+  font-weight: bold;
+}
+
+[data-theme="reveal.js-black"] .slide table th,
+[data-theme="reveal.js-black"] .slide table td {
+  text-align: left;
+  padding: 0.2em 0.5em 0.2em 0.5em;
+  border-bottom: 1px solid;
+}
+
+[data-theme="reveal.js-black"] .slide table th[align=center],
+[data-theme="reveal.js-black"] .slide table td[align=center] {
+  text-align: center;
+}
+
+[data-theme="reveal.js-black"] .slide table th[align=right],
+[data-theme="reveal.js-black"] .slide table td[align=right] {
+  text-align: right;
+}
+
+[data-theme="reveal.js-black"] .slide table tbody tr:last-child th,
+[data-theme="reveal.js-black"] .slide table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+[data-theme="reveal.js-black"] .slide sup {
+  vertical-align: super;
+  font-size: smaller;
+}
+
+[data-theme="reveal.js-black"] .slide sub {
+  vertical-align: sub;
+  font-size: smaller;
+}
+
+[data-theme="reveal.js-black"] .slide small {
+  display: inline-block;
+  font-size: 0.6em;
+  line-height: 1.2em;
+  vertical-align: top;
+}
+
+[data-theme="reveal.js-black"] .slide small * {
+  vertical-align: top;
+}
+
+[data-theme="reveal.js-black"] .slide img {
+  margin: var(--r-block-margin) 0;
+}
+
+[data-theme="reveal.js-black"] .slide a {
+  color: var(--r-link-color);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+[data-theme="reveal.js-black"] .slide a:hover {
+  color: var(--r-link-color-hover);
+  text-shadow: none;
+  border: none;
+}
+
+[data-theme="reveal.js-black"] {
+  --font-sans: var(--r-main-font);
+  --font-mono: var(--r-code-font);
+  --color-bg: var(--r-background-color);
+  --color-surface: var(--r-background-color);
+  --color-text: var(--r-main-color);
+  --color-heading: var(--r-heading-color);
+  --color-accent: var(--r-link-color);
+  --color-code-bg: rgba(127, 127, 127, 0.15);
+  --color-line: rgba(127, 127, 127, 0.2);
+}

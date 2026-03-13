@@ -3,7 +3,7 @@
 Turn any Markdown file into a ready-to-present slide app.
 
 - One command to scaffold, run, build, or export
-- 55 built-in templates, including reveal.js variants and curated external themes
+- 55 built-in themes, bundled in one universal template
 - Presenter mode, syntax highlighting, math, Mermaid, PDF export, and MP4 export
 
 Good fit for people who want something simpler than wiring reveal.js by hand, but more app-like than a single static deck file.
@@ -16,10 +16,10 @@ npx create-slides-app slides.md
 
 If the Markdown file does not exist, a sample deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens. Running the same command again on the same file reuses the existing project directory.
 
-Choose a specific template:
+Choose a specific theme:
 
 ```bash
-npx create-slides-app deck.md --template academic
+npx create-slides-app deck.md --theme academic
 ```
 
 Build static HTML:
@@ -43,15 +43,16 @@ npx create-slides-app deck.md --export mp4
 ## CLI options
 
 ```
-create-slides-app [slides.md] [--template <name>]
+create-slides-app [slides.md] [--theme <name>]
 create-slides-app [slides.md] --build
 create-slides-app [slides.md] --export <pdf|mp4>
-create-slides-app [project-name] [--template <name>]
+create-slides-app [project-name] [--theme <name>]
 ```
 
 - `slides.md` -- Markdown file to use. Created if it does not exist. The output directory name is derived from the filename (e.g. `deck.md` creates `deck/`).
 - `project-name` -- Output directory name when no Markdown file is given.
-- `--template <name>` -- Template under `templates/`. Prompted interactively if omitted.
+- `--theme <name>` -- Theme name written to frontmatter. Prompted interactively if omitted.
+- `--template <name>` -- Deprecated alias for `--theme`.
 - `--build` -- Build static HTML to `dist/` without starting a dev server.
 - `--export pdf` -- Export slides to PDF. Requires Google Chrome.
 - `--export mp4` -- Export slides to MP4 with fade transitions. Requires Google Chrome and ffmpeg.
@@ -185,14 +186,14 @@ Press P to open it.
 | End                   | Last slide                 |
 | P                     | Open presenter window      |
 
-## Available templates
+## Available themes
 
-Templates are auto-discovered from `templates/`. The repository currently ships 55 templates:
+Themes are listed in `templates/default/themes.json`. The repository currently ships 55 themes:
 
 - reveal.js adapted: `reveal.js-black`, `reveal.js-white`, `reveal.js-league`, `reveal.js-beige`, `reveal.js-sky`, `reveal.js-night`, `reveal.js-serif`, `reveal.js-simple`, `reveal.js-solarized`, `reveal.js-blood`, `reveal.js-moon`, `reveal.js-dracula`, `reveal.js-black-contrast`, `reveal.js-white-contrast`
 - external adapted: `academic`, `border`, `bw`, `catppuccin-frappe`, `catppuccin-latte`, `colors-blue`, `colors-green`, `colors-orange`, `colors-pink`, `colors-purple`, `colors-red`, `cybertopia`, `dracula-marp`, `gradient`, `graph-paper`, `hull-blue`, `indie-gaia`, `marpx-cantor`, `marpx-church`, `marpx-copernicus`, `marpx-einstein`, `marpx-frankfurt`, `marpx-galileo`, `marpx-gauss`, `marpx-goedel`, `marpx-gropius`, `marpx-haskell`, `marpx-hobbes`, `marpx-lorca`, `marpx-newton`, `marpx-socrates`, `marpx-sparta`, `olive`, `olive-gold`, `olive-invert`, `robot-lung`, `rose-pine`, `rose-pine-dawn`, `rose-pine-moon`, `sunblind`, `wave`
 
-Each template includes `THIRD_PARTY_NOTICES.md` with attribution for the original upstream theme.
+The universal template includes `THIRD_PARTY_NOTICES.md` with attribution for the bundled upstream themes.
 
 ## Tech stack
 
@@ -212,18 +213,18 @@ npm run build
 npm run smoke
 ```
 
-`npm run check` runs the CLI build, smoke test, template structure validation, and sample template builds.
+`npm run check` runs the CLI build, smoke test, template structure validation, and a universal template build.
 
-Template development:
+Universal template development:
 
 ```bash
-cd templates/reveal.js-black
+cd templates/default
 npm install
 npm run dev
 ```
 
-The seed template (`reveal.js-black`) contains the authoritative source for the slide engine. All other templates are generated from it by `npm run generate:templates`.
+`templates/default` is the runtime template shipped by the CLI. `npm run generate:templates` refreshes its bundled theme CSS from the reveal.js vendor files and the curated external theme definitions.
 
 ## CI
 
-GitHub Actions runs `npm ci` followed by `npm run check` (CLI build, smoke test, template validation, sample template builds).
+GitHub Actions runs `npm ci` followed by `npm run check` (CLI build, smoke test, template validation, universal template build).

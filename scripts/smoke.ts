@@ -10,18 +10,28 @@ try {
   const cases = [
     {
       label: "project name",
-      args: ["Smoke Slides", "--template", "reveal.js-white", "--scaffold-only"],
+      args: ["Smoke Slides", "--theme", "reveal.js-white", "--scaffold-only"],
       targetDir: path.join(tempRoot, "Smoke Slides"),
       expectedPackageName: "smoke-slides",
       expectedSlides: undefined,
+      expectedTheme: "reveal.js-white",
     },
     {
       label: "markdown import",
-      args: ["input-deck.md", "--template", "reveal.js-black", "--scaffold-only"],
+      args: ["input-deck.md", "--theme", "reveal.js-black", "--scaffold-only"],
       targetDir: path.join(tempRoot, "input-deck"),
       expectedPackageName: "input-deck",
       expectedSlides:
         "---\ntheme: reveal.js-black\n---\n\n# Imported Deck\n\nHello from smoke test.\n",
+      expectedTheme: "reveal.js-black",
+    },
+    {
+      label: "deprecated template alias",
+      args: ["Alias Slides", "--template", "academic", "--scaffold-only"],
+      targetDir: path.join(tempRoot, "Alias Slides"),
+      expectedPackageName: "alias-slides",
+      expectedSlides: undefined,
+      expectedTheme: "academic",
     },
   ] as const;
 
@@ -64,6 +74,31 @@ try {
       }
     }
 
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(smokeCase.targetDir, "themes.json"), "utf8"),
+    ) as unknown;
+    if (!Array.isArray(manifest) || manifest.some((value) => typeof value !== "string")) {
+      throw new Error(`${smokeCase.label} themes.json is invalid`);
+    }
+
+    const themeNames = manifest as string[];
+    if (!themeNames.includes(smokeCase.expectedTheme)) {
+      throw new Error(`${smokeCase.label} themes.json does not contain ${smokeCase.expectedTheme}`);
+    }
+
+    for (const themeName of themeNames) {
+      const themePath = path.join(
+        smokeCase.targetDir,
+        "src",
+        "styles",
+        "themes",
+        `${themeName}.css`,
+      );
+      if (!fs.existsSync(themePath)) {
+        throw new Error(`${smokeCase.label} missing theme stylesheet: ${themeName}.css`);
+      }
+    }
+
     if (smokeCase.expectedSlides) {
       const generatedSlides = fs.readFileSync(
         path.join(smokeCase.targetDir, "input-deck.md"),
@@ -75,27 +110,21 @@ try {
     }
   }
 
-  const unknownTemplate = spawnSync(
+  const unknownTheme = spawnSync(
     process.execPath,
-    [
-      path.join(repoRoot, "dist/cli.js"),
-      "Unknown Template",
-      "--template",
-      "default",
-      "--scaffold-only",
-    ],
+    [path.join(repoRoot, "dist/cli.js"), "Unknown Theme", "--theme", "default", "--scaffold-only"],
     {
       cwd: tempRoot,
       encoding: "utf8",
     },
   );
 
-  if (unknownTemplate.status === 0) {
-    throw new Error("unknown template should have failed");
+  if (unknownTheme.status === 0) {
+    throw new Error("unknown theme should have failed");
   }
 
-  if (!(unknownTemplate.stderr || unknownTemplate.stdout).includes('Unknown template "default"')) {
-    throw new Error("unknown template did not produce the expected error");
+  if (!(unknownTheme.stderr || unknownTheme.stdout).includes('Unknown theme "default"')) {
+    throw new Error("unknown theme did not produce the expected error");
   }
 
   const unknownOption = spawnSync(
@@ -127,7 +156,7 @@ try {
     [
       path.join(repoRoot, "dist/cli.js"),
       "input-deck.md",
-      "--template",
+      "--theme",
       "reveal.js-black",
       "--scaffold-only",
     ],
@@ -159,7 +188,7 @@ try {
     [
       path.join(repoRoot, "dist/cli.js"),
       "input-deck.md",
-      "--template",
+      "--theme",
       "reveal.js-black",
       "--scaffold-only",
     ],
@@ -195,7 +224,7 @@ try {
     [
       path.join(repoRoot, "dist/cli.js"),
       "example.md",
-      "--template",
+      "--theme",
       "reveal.js-black",
       "--scaffold-only",
     ],
@@ -221,9 +250,17 @@ try {
     throw new Error("auto-created project did not copy example.md");
   }
 
+  if (!autoCreateSlides.includes("theme: reveal.js-black")) {
+    throw new Error("auto-created project did not set the selected theme");
+  }
+
   const mainTsx = fs.readFileSync(path.join(tempRoot, "example", "src", "main.tsx"), "utf8");
   if (!mainTsx.includes('"../example.md?raw"')) {
     throw new Error("main.tsx does not import the correct markdown file");
+  }
+
+  if (!mainTsx.includes('"./styles/themes/index.css"')) {
+    throw new Error("main.tsx does not import the universal theme index");
   }
 
   const rerunResult = spawnSync(
@@ -231,7 +268,7 @@ try {
     [
       path.join(repoRoot, "dist/cli.js"),
       "example.md",
-      "--template",
+      "--theme",
       "reveal.js-black",
       "--scaffold-only",
     ],

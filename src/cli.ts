@@ -13,6 +13,8 @@ import WebSocket from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const templatesRoot = path.resolve(__dirname, "..", "templates");
+const defaultTemplateDir = path.join(templatesRoot, "default");
+const themesManifestPath = path.join(defaultTemplateDir, "themes.json");
 const projectStateFile = ".create-slides-app.json";
 
 type ExportFormat = "pdf" | "mp4";
@@ -24,7 +26,8 @@ interface CliOptions {
   exportFormat?: ExportFormat;
   projectName?: string;
   markdownPath?: string;
-  template?: string;
+  theme?: string;
+  deprecatedTemplateFlag: boolean;
   port: number;
 }
 
@@ -38,19 +41,20 @@ function printHelp(): void {
   console.log(`create-slides-app
 
 Usage:
-  create-slides-app [slides.md] [--template <name>]
+  create-slides-app [slides.md] [--theme <name>]
   create-slides-app [slides.md] --build
   create-slides-app [slides.md] --export <pdf|mp4>
 
 Options:
-  --template <name>    Template directory under templates/ (omit to choose interactively)
+  --theme <name>       Theme name written to frontmatter (omit to choose interactively)
+  --template <name>    Deprecated alias for --theme
   --build              Build static HTML to dist/ (no dev server)
   --port <number>      Dev server port (default: 3030)
   --export <pdf|mp4>   Export slides to PDF or MP4 video (requires Chrome; mp4 also requires ffmpeg)
   --help               Show this message
 
 Examples:
-  create-slides-app deck.md --template academic
+  create-slides-app deck.md --theme academic
 `);
 }
 
@@ -89,7 +93,13 @@ function writeProjectState(targetDir: string, state: ProjectState): void {
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { help: false, scaffoldOnly: false, build: false, port: 3030 };
+  const options: CliOptions = {
+    help: false,
+    scaffoldOnly: false,
+    build: false,
+    deprecatedTemplateFlag: false,
+    port: 3030,
+  };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -129,12 +139,15 @@ function parseArgs(argv: string[]): CliOptions {
       continue;
     }
 
-    if (arg === "--template" || arg === "-t") {
+    if (arg === "--theme" || arg === "-t" || arg === "--template") {
       const value = argv[index + 1];
       if (!value) {
-        throw new Error("Missing value for --template");
+        throw new Error(`Missing value for ${arg}`);
       }
-      options.template = value;
+      options.theme = value;
+      if (arg === "--template") {
+        options.deprecatedTemplateFlag = true;
+      }
       index += 1;
       continue;
     }
@@ -162,12 +175,21 @@ function parseArgs(argv: string[]): CliOptions {
   return options;
 }
 
-function listTemplates(): string[] {
-  return fs
-    .readdirSync(templatesRoot, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
+function listThemes(): string[] {
+  if (!fs.existsSync(defaultTemplateDir)) {
+    return [];
+  }
+
+  if (!fs.existsSync(themesManifestPath)) {
+    throw new Error(`Theme manifest not found: ${themesManifestPath}`);
+  }
+
+  const raw = JSON.parse(fs.readFileSync(themesManifestPath, "utf8")) as unknown;
+  if (!Array.isArray(raw) || raw.some((value) => typeof value !== "string")) {
+    throw new Error(`Invalid theme manifest: ${themesManifestPath}`);
+  }
+
+  return [...new Set(raw)].sort();
 }
 
 function validateTargetPath(projectName: string): string | undefined {
@@ -178,10 +200,10 @@ function validateTargetPath(projectName: string): string | undefined {
   return undefined;
 }
 
-function buildExampleMarkdown(template: string): string {
+function buildExampleMarkdown(theme: string): string {
   return `---
 title: Example Slides
-theme: ${template}
+theme: ${theme}
 ---
 
 <!-- layout: title -->
@@ -273,10 +295,10 @@ Press P to open the presenter window with notes, next slide preview, and a timer
 `;
 }
 
-function ensureThemeFrontmatter(content: string, template: string): string {
+function ensureThemeFrontmatter(content: string, theme: string): string {
   const trimmed = content.trimStart();
   if (!trimmed.startsWith("---\n")) {
-    return `---\ntheme: ${template}\n---\n\n${content}`;
+    return `---\ntheme: ${theme}\n---\n\n${content}`;
   }
   const endIndex = trimmed.indexOf("\n---", 4);
   if (endIndex === -1) {
@@ -288,7 +310,7 @@ function ensureThemeFrontmatter(content: string, template: string): string {
   }
   const insertPos = content.trimStart().indexOf("\n---", 4);
   const prefix = content.slice(0, content.length - trimmed.length);
-  return prefix + trimmed.slice(0, insertPos) + `\ntheme: ${template}` + trimmed.slice(insertPos);
+  return prefix + trimmed.slice(0, insertPos) + `\ntheme: ${theme}` + trimmed.slice(insertPos);
 }
 
 function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
@@ -348,31 +370,29 @@ function deriveProjectNameFromMarkdown(markdownPath: string): string {
   return fileName || "my-slides";
 }
 
-async function resolveTemplate(overrideTemplate?: string): Promise<string> {
-  const templates = listTemplates();
+async function resolveTheme(overrideTheme?: string): Promise<string> {
+  const themes = listThemes();
 
-  if (templates.length === 0) {
-    throw new Error("No templates are available");
+  if (themes.length === 0) {
+    throw new Error("No themes are available");
   }
 
-  if (overrideTemplate) {
-    if (!templates.includes(overrideTemplate)) {
-      throw new Error(
-        `Unknown template "${overrideTemplate}". Available templates: ${templates.join(", ")}`,
-      );
+  if (overrideTheme) {
+    if (!themes.includes(overrideTheme)) {
+      throw new Error(`Unknown theme "${overrideTheme}". Available themes: ${themes.join(", ")}`);
     }
-    return overrideTemplate;
+    return overrideTheme;
   }
 
-  if (templates.length === 1) {
-    return templates[0];
+  if (themes.length === 1) {
+    return themes[0];
   }
 
   const selected = await select({
-    message: "Select a template:",
-    options: templates.map((template) => ({
-      value: template,
-      label: template,
+    message: "Select a theme:",
+    options: themes.map((theme) => ({
+      value: theme,
+      label: theme,
     })),
   });
 
@@ -388,13 +408,13 @@ function syncMarkdownFile(
   targetDir: string,
   markdownPath: string,
   mdFileName: string,
-  template?: string,
+  theme?: string,
   overwriteExistingTarget = false,
 ): void {
   const targetMarkdownPath = path.join(targetDir, mdFileName);
   const rawContent = fs.readFileSync(markdownPath, "utf8");
-  const sourceContent = template ? ensureThemeFrontmatter(rawContent, template) : rawContent;
-  if (template && sourceContent !== rawContent) {
+  const sourceContent = theme ? ensureThemeFrontmatter(rawContent, theme) : rawContent;
+  if (theme && sourceContent !== rawContent) {
     fs.writeFileSync(markdownPath, sourceContent);
   }
   const sourceHash = hashContent(sourceContent);
@@ -869,6 +889,10 @@ async function main(): Promise<void> {
 
   intro(pc.cyan("create-slides-app"));
 
+  if (options.deprecatedTemplateFlag) {
+    console.warn(pc.yellow("Warning: --template is deprecated. Use --theme instead."));
+  }
+
   const markdownPath = resolveMarkdownPath(options.markdownPath);
   const projectName = await resolveProjectName(
     options.projectName ?? (markdownPath ? deriveProjectNameFromMarkdown(markdownPath) : undefined),
@@ -878,11 +902,10 @@ async function main(): Promise<void> {
   const alreadyScaffolded = fs.existsSync(targetDir);
 
   if (!alreadyScaffolded) {
-    const template = await resolveTemplate(options.template);
-    const templateDir = path.resolve(templatesRoot, template);
+    const theme = await resolveTheme(options.theme);
 
     fs.mkdirSync(path.dirname(targetDir), { recursive: true });
-    fs.cpSync(templateDir, targetDir, { recursive: true });
+    fs.cpSync(defaultTemplateDir, targetDir, { recursive: true });
 
     const pkgPath = path.join(targetDir, "package.json");
     const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
@@ -897,13 +920,13 @@ async function main(): Promise<void> {
     }
 
     if (markdownPath && fs.existsSync(markdownPath)) {
-      syncMarkdownFile(targetDir, markdownPath, mdFileName, template, true);
+      syncMarkdownFile(targetDir, markdownPath, mdFileName, theme, true);
     } else if (markdownPath) {
-      const generated = buildExampleMarkdown(template);
+      const generated = buildExampleMarkdown(theme);
       fs.writeFileSync(markdownPath, generated);
-      syncMarkdownFile(targetDir, markdownPath, mdFileName, template, true);
+      syncMarkdownFile(targetDir, markdownPath, mdFileName, theme, true);
     } else if (mdFileName !== "example.md") {
-      fs.writeFileSync(path.join(targetDir, mdFileName), buildExampleMarkdown(template));
+      fs.writeFileSync(path.join(targetDir, mdFileName), buildExampleMarkdown(theme));
     }
   }
 
