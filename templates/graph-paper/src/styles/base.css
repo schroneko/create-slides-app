@@ -91,7 +91,7 @@ body {
 }
 
 .slide-layout-title h1 {
-  font-size: 4rem;
+  font-size: clamp(2rem, 5vw, 4rem);
   margin-bottom: 1.5rem;
 }
 
@@ -108,7 +108,7 @@ body {
 }
 
 .slide h1 {
-  font-size: 3rem;
+  font-size: clamp(1.75rem, 4vw, 3rem);
   font-weight: 700;
   color: var(--color-heading);
   margin-bottom: 1rem;
