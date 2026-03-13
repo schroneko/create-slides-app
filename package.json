@@ -14,6 +14,7 @@
     "url": "https://github.com/schroneko/create-slides-app/issues"
   },
   "license": "MIT",
+  "author": "schroneko",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/schroneko/create-slides-app.git"
@@ -23,7 +24,10 @@
   },
   "files": [
     "dist",
-    "templates"
+    "templates",
+    "!templates/*/node_modules",
+    "!templates/*/dist",
+    "!templates/*/package-lock.json"
   ],
   "type": "module",
   "scripts": {

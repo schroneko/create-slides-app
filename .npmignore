@@ -1,0 +1,7 @@
+templates/*/node_modules
+templates/*/dist
+templates/*/package-lock.json
+vendor
+scripts
+test-features.md
+.github
