@@ -25,6 +25,7 @@ interface CliOptions {
   projectName?: string;
   markdownPath?: string;
   template?: string;
+  port: number;
 }
 
 interface ProjectState {
@@ -44,6 +45,7 @@ Usage:
 Options:
   --template <name>    Template directory under templates/ (omit to choose interactively)
   --build              Build static HTML to dist/ (no dev server)
+  --port <number>      Dev server port (default: 3030)
   --export <pdf|mp4>   Export slides to PDF or MP4 video (requires Chrome; mp4 also requires ffmpeg)
   --help               Show this message
 
@@ -87,7 +89,7 @@ function writeProjectState(targetDir: string, state: ProjectState): void {
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { help: false, scaffoldOnly: false, build: false };
+  const options: CliOptions = { help: false, scaffoldOnly: false, build: false, port: 3030 };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -113,6 +115,16 @@ function parseArgs(argv: string[]): CliOptions {
         throw new Error("--export requires a format: pdf or mp4");
       }
       options.exportFormat = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--port" || arg === "-p") {
+      const value = Number(argv[index + 1]);
+      if (!Number.isInteger(value) || value < 1 || value > 65535) {
+        throw new Error("--port requires a valid port number (1-65535)");
+      }
+      options.port = value;
       index += 1;
       continue;
     }
@@ -899,7 +911,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  const port = 3030;
+  const port = options.port;
   const url = `http://localhost:${port}`;
 
   await ensurePortAvailable(port);
