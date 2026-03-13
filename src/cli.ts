@@ -178,8 +178,10 @@ function validateTargetPath(projectName: string): string | undefined {
   return undefined;
 }
 
-const exampleMarkdown = `---
+function buildExampleMarkdown(template: string): string {
+  return `---
 title: Example Slides
+theme: ${template}
 ---
 
 <!-- layout: title -->
@@ -269,6 +271,25 @@ Note:
 These are speaker notes, visible only in presenter mode.
 Press P to open the presenter window with notes, next slide preview, and a timer.
 `;
+}
+
+function ensureThemeFrontmatter(content: string, template: string): string {
+  const trimmed = content.trimStart();
+  if (!trimmed.startsWith("---\n")) {
+    return `---\ntheme: ${template}\n---\n\n${content}`;
+  }
+  const endIndex = trimmed.indexOf("\n---", 4);
+  if (endIndex === -1) {
+    return content;
+  }
+  const frontmatter = trimmed.slice(4, endIndex);
+  if (/^theme\s*:/m.test(frontmatter)) {
+    return content;
+  }
+  const insertPos = content.trimStart().indexOf("\n---", 4);
+  const prefix = content.slice(0, content.length - trimmed.length);
+  return prefix + trimmed.slice(0, insertPos) + `\ntheme: ${template}` + trimmed.slice(insertPos);
+}
 
 function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
   if (!initialMarkdownPath) {
@@ -278,7 +299,7 @@ function resolveMarkdownPath(initialMarkdownPath?: string): string | undefined {
   const markdownPath = path.resolve(process.cwd(), initialMarkdownPath);
 
   if (!fs.existsSync(markdownPath)) {
-    fs.writeFileSync(markdownPath, exampleMarkdown);
+    return markdownPath;
   }
 
   if (!fs.statSync(markdownPath).isFile()) {
@@ -367,10 +388,15 @@ function syncMarkdownFile(
   targetDir: string,
   markdownPath: string,
   mdFileName: string,
+  template?: string,
   overwriteExistingTarget = false,
 ): void {
   const targetMarkdownPath = path.join(targetDir, mdFileName);
-  const sourceContent = fs.readFileSync(markdownPath, "utf8");
+  const rawContent = fs.readFileSync(markdownPath, "utf8");
+  const sourceContent = template ? ensureThemeFrontmatter(rawContent, template) : rawContent;
+  if (template && sourceContent !== rawContent) {
+    fs.writeFileSync(markdownPath, sourceContent);
+  }
   const sourceHash = hashContent(sourceContent);
   const state = readProjectState(targetDir);
 
@@ -870,10 +896,14 @@ async function main(): Promise<void> {
       fs.unlinkSync(path.join(targetDir, "example.md"));
     }
 
-    if (markdownPath) {
-      syncMarkdownFile(targetDir, markdownPath, mdFileName, true);
+    if (markdownPath && fs.existsSync(markdownPath)) {
+      syncMarkdownFile(targetDir, markdownPath, mdFileName, template, true);
+    } else if (markdownPath) {
+      const generated = buildExampleMarkdown(template);
+      fs.writeFileSync(markdownPath, generated);
+      syncMarkdownFile(targetDir, markdownPath, mdFileName, template, true);
     } else if (mdFileName !== "example.md") {
-      fs.writeFileSync(path.join(targetDir, mdFileName), exampleMarkdown);
+      fs.writeFileSync(path.join(targetDir, mdFileName), buildExampleMarkdown(template));
     }
   }
 

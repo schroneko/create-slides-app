@@ -20,7 +20,8 @@ try {
       args: ["input-deck.md", "--template", "reveal.js-black", "--scaffold-only"],
       targetDir: path.join(tempRoot, "input-deck"),
       expectedPackageName: "input-deck",
-      expectedSlides: "# Imported Deck\n\nHello from smoke test.\n",
+      expectedSlides:
+        "---\ntheme: reveal.js-black\n---\n\n# Imported Deck\n\nHello from smoke test.\n",
     },
   ] as const;
 
@@ -111,7 +112,7 @@ try {
   }
 
   if (
-    !(unknownOption.stderr || unknownOption.stdout).includes('Unknown argument: --list-template')
+    !(unknownOption.stderr || unknownOption.stdout).includes("Unknown argument: --list-template")
   ) {
     throw new Error("unknown option did not produce the expected error");
   }
@@ -142,16 +143,16 @@ try {
     );
   }
 
-  const resyncedSlides = fs.readFileSync(path.join(tempRoot, "input-deck", "input-deck.md"), "utf8");
+  const resyncedSlides = fs.readFileSync(
+    path.join(tempRoot, "input-deck", "input-deck.md"),
+    "utf8",
+  );
   if (resyncedSlides !== "# Imported Deck\n\nUpdated from source.\n") {
     throw new Error("existing project did not refresh from the source markdown");
   }
 
   fs.writeFileSync(path.join(tempRoot, "input-deck", "input-deck.md"), "# Local change\n");
-  fs.writeFileSync(
-    path.join(tempRoot, "input-deck.md"),
-    "# Imported Deck\n\nUpdated again.\n",
-  );
+  fs.writeFileSync(path.join(tempRoot, "input-deck.md"), "# Imported Deck\n\nUpdated again.\n");
 
   const conflictResult = spawnSync(
     process.execPath,
