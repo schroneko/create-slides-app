@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { App } from "./app";
-import slidesRaw from "../slides.md?raw";
+import slidesRaw from "../__SLIDES_MD__?raw";
 import "./styles/base.css";
 import "./styles/themes/reveal.js-solarized.css";
 

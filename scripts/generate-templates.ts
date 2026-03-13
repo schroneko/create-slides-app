@@ -24,13 +24,13 @@ SOFTWARE.
 `;
 
 const revealCopyright =
-  'Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors';
+  "Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors";
 
 const localFontReplacements: Record<string, string> = {
   "@import url(./fonts/source-sans-pro/source-sans-pro.css);":
-    '@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,600,600i,700,700i);',
+    "@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,600,600i,700,700i);",
   "@import url(./fonts/league-gothic/league-gothic.css);":
-    '@import url(https://fonts.googleapis.com/css?family=League+Gothic);',
+    "@import url(https://fonts.googleapis.com/css?family=League+Gothic);",
 };
 
 type ThemeEntry = {
@@ -122,14 +122,8 @@ ${scope} {
 
   css = css.replace(/\.reveal-viewport\s*\{([^}]*)\}/g, `${scope} body {$1}`);
 
-  css = css.replace(
-    /\.reveal\s+\.slides\s+section\s*>\s*section/g,
-    `${scope} .slide`,
-  );
-  css = css.replace(
-    /\.reveal\s+\.slides\s+section/g,
-    `${scope} .slide`,
-  );
+  css = css.replace(/\.reveal\s+\.slides\s+section\s*>\s*section/g, `${scope} .slide`);
+  css = css.replace(/\.reveal\s+\.slides\s+section/g, `${scope} .slide`);
 
   css = css.replace(/\.reveal\s+\.code-wrapper\s+code/g, `${scope} .slide .code-wrapper code`);
   css = css.replace(/\.reveal\s+\.code-wrapper/g, `${scope} .slide .code-wrapper`);
@@ -178,7 +172,7 @@ function renderParser(themeId: string): string {
 function renderMain(themeId: string): string {
   return `import { createRoot } from "react-dom/client";
 import { App } from "./app";
-import slidesRaw from "../slides.md?raw";
+import slidesRaw from "../__SLIDES_MD__?raw";
 import "./styles/base.css";
 import "./styles/themes/${themeId}.css";
 
@@ -284,7 +278,6 @@ for (const theme of themes) {
 
   writeFile(path.join(targetDir, "src/engine/parser.ts"), renderParser(dirName));
   writeFile(path.join(targetDir, "src/main.tsx"), renderMain(dirName));
-  writeFile(path.join(targetDir, "slides.md"), renderSlides(dirName, theme.title));
   writeFile(path.join(targetDir, "THIRD_PARTY_NOTICES.md"), renderThirdPartyNotice(theme.name));
   writeFile(path.join(targetDir, "src/styles/themes", `${dirName}.css`), adaptedCss);
 }

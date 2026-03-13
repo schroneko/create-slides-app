@@ -8,7 +8,7 @@ CLI that generates a React-based slide app from Markdown.
 npx create-slides-app example.md
 ```
 
-If the specified Markdown file does not exist, a sample slide deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens.
+If the specified Markdown file does not exist, a sample slide deck is created automatically. Dependencies are installed, a dev server starts, and the browser opens. Running the same command again reuses the existing project directory without re-scaffolding.
 
 Build static HTML:
 
@@ -70,13 +70,13 @@ All themes are adapted from the original reveal.js theme CSS (MIT license).
 ## Template notes
 
 - React + Vite + TypeScript
-- Reads `slides.md` and splits slides by `---`
+- Reads the Markdown file (same name as the input, e.g. `deck.md`) and splits slides by `---`
 - Frontmatter supports `title` and `theme`
 - Navigation with arrow keys, Space, Home, and End
 - Each template ships a single theme
 - `THIRD_PARTY_NOTICES.md` includes attribution and license
 
-Example `slides.md`:
+Example Markdown:
 
 ```md
 ---

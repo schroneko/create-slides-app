@@ -113,12 +113,6 @@ function validateTargetPath(projectName: string): string | undefined {
     return "Project name is required";
   }
 
-  const targetDir = path.resolve(process.cwd(), projectName);
-
-  if (fs.existsSync(targetDir)) {
-    return `Directory "${projectName}" already exists`;
-  }
-
   return undefined;
 }
 
@@ -604,20 +598,31 @@ async function main(): Promise<void> {
   const projectName = await resolveProjectName(
     options.projectName ?? (markdownPath ? deriveProjectNameFromMarkdown(markdownPath) : undefined),
   );
-  const template = await resolveTemplate(options.template);
-  const templateDir = path.resolve(templatesRoot, template);
   const targetDir = path.resolve(process.cwd(), projectName);
+  const mdFileName = markdownPath ? path.basename(markdownPath) : `${projectName}.md`;
+  const alreadyScaffolded = fs.existsSync(targetDir);
 
-  fs.mkdirSync(path.dirname(targetDir), { recursive: true });
-  fs.cpSync(templateDir, targetDir, { recursive: true });
+  if (!alreadyScaffolded) {
+    const template = await resolveTemplate(options.template);
+    const templateDir = path.resolve(templatesRoot, template);
 
-  const pkgPath = path.join(targetDir, "package.json");
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-  pkg.name = toPackageName(path.basename(targetDir));
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+    fs.mkdirSync(path.dirname(targetDir), { recursive: true });
+    fs.cpSync(templateDir, targetDir, { recursive: true });
 
-  if (markdownPath) {
-    fs.copyFileSync(markdownPath, path.join(targetDir, "slides.md"));
+    const pkgPath = path.join(targetDir, "package.json");
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+    pkg.name = toPackageName(path.basename(targetDir));
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+
+    const mainTsxPath = path.join(targetDir, "src/main.tsx");
+    const mainTsx = fs.readFileSync(mainTsxPath, "utf-8");
+    fs.writeFileSync(mainTsxPath, mainTsx.replace("__SLIDES_MD__", mdFileName));
+
+    if (markdownPath) {
+      fs.copyFileSync(markdownPath, path.join(targetDir, mdFileName));
+    } else {
+      fs.writeFileSync(path.join(targetDir, mdFileName), exampleMarkdown);
+    }
   }
 
   if (options.scaffoldOnly) {
@@ -626,7 +631,7 @@ async function main(): Promise<void> {
   }
 
   const s = spinner();
-  s.start("Installing dependencies...");
+  s.start(alreadyScaffolded ? "Checking dependencies..." : "Installing dependencies...");
   execSync("npm install --silent", { cwd: targetDir, stdio: "ignore" });
   s.stop("Dependencies installed.");
 

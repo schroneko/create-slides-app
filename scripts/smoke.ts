@@ -24,7 +24,10 @@ try {
     },
   ] as const;
 
-  fs.writeFileSync(path.join(tempRoot, "input-deck.md"), "# Imported Deck\n\nHello from smoke test.\n");
+  fs.writeFileSync(
+    path.join(tempRoot, "input-deck.md"),
+    "# Imported Deck\n\nHello from smoke test.\n",
+  );
 
   for (const smokeCase of cases) {
     const result = spawnSync(
@@ -42,7 +45,9 @@ try {
       );
     }
 
-    const pkg = JSON.parse(fs.readFileSync(path.join(smokeCase.targetDir, "package.json"), "utf8")) as {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(smokeCase.targetDir, "package.json"), "utf8"),
+    ) as {
       name?: string;
     };
 
@@ -52,14 +57,17 @@ try {
       );
     }
 
-    for (const requiredFile of ["slides.md", "src/main.tsx", "src/app.tsx"]) {
+    for (const requiredFile of ["src/main.tsx", "src/app.tsx"]) {
       if (!fs.existsSync(path.join(smokeCase.targetDir, requiredFile))) {
         throw new Error(`${smokeCase.label} missing generated file: ${requiredFile}`);
       }
     }
 
     if (smokeCase.expectedSlides) {
-      const generatedSlides = fs.readFileSync(path.join(smokeCase.targetDir, "slides.md"), "utf8");
+      const generatedSlides = fs.readFileSync(
+        path.join(smokeCase.targetDir, "input-deck.md"),
+        "utf8",
+      );
       if (generatedSlides !== smokeCase.expectedSlides) {
         throw new Error(`${smokeCase.label} did not copy the source markdown`);
       }
@@ -68,7 +76,13 @@ try {
 
   const unknownTemplate = spawnSync(
     process.execPath,
-    [path.join(repoRoot, "dist/cli.js"), "Unknown Template", "--template", "default", "--scaffold-only"],
+    [
+      path.join(repoRoot, "dist/cli.js"),
+      "Unknown Template",
+      "--template",
+      "default",
+      "--scaffold-only",
+    ],
     {
       cwd: tempRoot,
       encoding: "utf8",
@@ -94,7 +108,13 @@ try {
 
   const autoCreateResult = spawnSync(
     process.execPath,
-    [path.join(repoRoot, "dist/cli.js"), "example.md", "--template", "reveal.js-black", "--scaffold-only"],
+    [
+      path.join(repoRoot, "dist/cli.js"),
+      "example.md",
+      "--template",
+      "reveal.js-black",
+      "--scaffold-only",
+    ],
     {
       cwd: tempRoot,
       encoding: "utf8",
@@ -112,9 +132,35 @@ try {
     throw new Error("auto-created example.md does not contain expected content");
   }
 
-  const autoCreateSlides = fs.readFileSync(path.join(tempRoot, "example", "slides.md"), "utf8");
+  const autoCreateSlides = fs.readFileSync(path.join(tempRoot, "example", "example.md"), "utf8");
   if (!autoCreateSlides.includes("# Example Slides")) {
-    throw new Error("auto-created project did not copy example.md to slides.md");
+    throw new Error("auto-created project did not copy example.md");
+  }
+
+  const mainTsx = fs.readFileSync(path.join(tempRoot, "example", "src", "main.tsx"), "utf8");
+  if (!mainTsx.includes('"../example.md?raw"')) {
+    throw new Error("main.tsx does not import the correct markdown file");
+  }
+
+  const rerunResult = spawnSync(
+    process.execPath,
+    [
+      path.join(repoRoot, "dist/cli.js"),
+      "example.md",
+      "--template",
+      "reveal.js-black",
+      "--scaffold-only",
+    ],
+    {
+      cwd: tempRoot,
+      encoding: "utf8",
+    },
+  );
+
+  if (rerunResult.status !== 0) {
+    throw new Error(
+      `re-run on existing directory failed: ${rerunResult.stderr || rerunResult.stdout || "failed"}`,
+    );
   }
 
   console.log(`Smoke test passed: ${tempRoot}`);
