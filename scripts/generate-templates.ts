@@ -992,6 +992,8 @@ ${scope} {
   --color-line: rgba(127, 127, 127, 0.2);
 }
 `;
+  css = css.replace(/--r-heading1-size:\s*[^;]+;/, "--r-heading1-size: clamp(1.5em, 4vw, 2.5em);");
+
   css = css + bridge;
 
   css = css.replace(/\.reveal-viewport\s*\{([^}]*)\}/g, `${scope} body {$1}`);
