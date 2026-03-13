@@ -3,6 +3,8 @@ title: Reveal.js Night
 theme: reveal.js-night
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Night
 
 Theme: reveal.js-night

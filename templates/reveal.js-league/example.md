@@ -3,6 +3,8 @@ title: Reveal.js League
 theme: reveal.js-league
 ---
 
+<!-- layout: title -->
+
 # Reveal.js League
 
 Theme: reveal.js-league

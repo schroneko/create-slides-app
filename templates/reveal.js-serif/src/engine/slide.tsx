@@ -184,5 +184,6 @@ export function Slide({ data, currentFragment }: SlideProps): React.ReactElement
     };
   }, [data.content, data.fragmentCount, currentFragment]);
 
-  return <div className="slide">{content}</div>;
+  const layoutClass = data.layout === "title" ? "slide slide-layout-title" : "slide";
+  return <div className={layoutClass}>{content}</div>;
 }

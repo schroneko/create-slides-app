@@ -188,6 +188,8 @@ title: ${title}
 theme: ${dirName}
 ---
 
+<!-- layout: title -->
+
 # ${title}
 
 Theme: ${dirName}

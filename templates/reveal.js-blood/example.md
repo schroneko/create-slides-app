@@ -3,6 +3,8 @@ title: Reveal.js Blood
 theme: reveal.js-blood
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Blood
 
 Theme: reveal.js-blood

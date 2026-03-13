@@ -3,6 +3,8 @@ title: Reveal.js Beige
 theme: reveal.js-beige
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Beige
 
 Theme: reveal.js-beige

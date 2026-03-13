@@ -3,6 +3,8 @@ title: Reveal.js Dracula
 theme: reveal.js-dracula
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Dracula
 
 Theme: reveal.js-dracula

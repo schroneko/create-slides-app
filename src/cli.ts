@@ -124,11 +124,11 @@ const exampleMarkdown = `---
 title: Example Slides
 ---
 
+<!-- layout: title -->
+
 # Example Slides
 
-Created with **create-slides-app**
-
-Slides are separated by \`---\` in Markdown
+Created with create-slides-app
 
 ---
 

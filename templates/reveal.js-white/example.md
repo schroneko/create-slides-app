@@ -3,6 +3,8 @@ title: Reveal.js White
 theme: reveal.js-white
 ---
 
+<!-- layout: title -->
+
 # Reveal.js White
 
 Theme: reveal.js-white

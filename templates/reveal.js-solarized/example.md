@@ -3,6 +3,8 @@ title: Reveal.js Solarized
 theme: reveal.js-solarized
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Solarized
 
 Theme: reveal.js-solarized

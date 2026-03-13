@@ -3,6 +3,8 @@ title: Reveal.js Sky
 theme: reveal.js-sky
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Sky
 
 Theme: reveal.js-sky

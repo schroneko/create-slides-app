@@ -3,6 +3,8 @@ title: Reveal.js Simple
 theme: reveal.js-simple
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Simple
 
 Theme: reveal.js-simple

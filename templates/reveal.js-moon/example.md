@@ -3,6 +3,8 @@ title: Reveal.js Moon
 theme: reveal.js-moon
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Moon
 
 Theme: reveal.js-moon

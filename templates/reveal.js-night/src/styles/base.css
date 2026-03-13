@@ -84,6 +84,22 @@ body {
   transform-origin: center center;
 }
 
+.slide-layout-title {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.slide-layout-title h1 {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.slide-layout-title p {
+  font-size: 1.5rem;
+  color: #888;
+}
+
 .slide-empty,
 .slide-fallback {
   align-items: center;

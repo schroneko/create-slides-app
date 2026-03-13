@@ -6,9 +6,12 @@ export interface PresentationConfig {
   [key: string]: unknown;
 }
 
+export type SlideLayout = "default" | "title";
+
 export interface SlideData {
   index: number;
   content: string;
+  layout: SlideLayout;
   frontmatter: Record<string, unknown>;
   notes: string;
   fragmentCount: number;
@@ -69,6 +72,18 @@ function parseNotes(raw: string): { content: string; notes: string } {
   return { content, notes };
 }
 
+const validLayouts = new Set<SlideLayout>(["default", "title"]);
+
+function extractLayout(raw: string): { content: string; layout: SlideLayout } {
+  const pattern = /^<!--\s*layout:\s*(\S+)\s*-->\s*\n?/m;
+  const match = raw.match(pattern);
+  if (!match) return { content: raw, layout: "default" };
+  const name = match[1] as SlideLayout;
+  const layout = validLayouts.has(name) ? name : "default";
+  const content = raw.slice(0, match.index) + raw.slice(match.index! + match[0].length);
+  return { content, layout };
+}
+
 function countFragments(content: string): number {
   const lines = content.split("\n");
   let count = 0;
@@ -107,11 +122,13 @@ export function parseSlides(markdown: string): ParsedPresentation {
 
   const slides: SlideData[] = rawSlides.map((raw, index) => {
     const parsed = extractFrontmatter(raw);
-    const { content: slideContent, notes } = parseNotes(parsed.content.trim());
+    const { content: withoutNotes, notes } = parseNotes(parsed.content.trim());
+    const { content: slideContent, layout } = extractLayout(withoutNotes);
     const fragmentCount = countFragments(slideContent);
     return {
       index,
       content: slideContent,
+      layout,
       frontmatter: parsed.data as Record<string, unknown>,
       notes,
       fragmentCount,

@@ -3,6 +3,8 @@ title: Reveal.js Serif
 theme: reveal.js-serif
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Serif
 
 Theme: reveal.js-serif

@@ -112,6 +112,26 @@ graph TD
 ```
 ````
 
+### Slide layouts
+
+Use `<!-- layout: title -->` to switch a slide to the title layout (centered, larger heading). Without the directive, slides use the default layout (left-aligned content).
+
+```md
+<!-- layout: title -->
+
+# My Presentation
+
+A subtitle or tagline
+
+---
+
+# Regular Slide
+
+This uses the default left-aligned layout.
+```
+
+Available layouts: `title`, `default` (implicit).
+
 ### Fragment lists
 
 Add `<!-- fragment -->` before a list to reveal items one at a time with arrow keys.
@@ -140,6 +160,7 @@ Press P to open it.
 
 ### Feature summary
 
+- Slide layouts -- `<!-- layout: title -->` for centered title slides, default for content slides
 - Syntax highlighting -- Fenced code blocks highlighted via Shiki (vitesse-dark theme)
 - Math -- Inline (`$...$`) and block (`$$...$$`) math rendered with KaTeX
 - Mermaid diagrams -- Fenced code blocks with `mermaid` language render as SVG

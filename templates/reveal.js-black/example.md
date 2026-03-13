@@ -3,6 +3,8 @@ title: Reveal.js Black
 theme: reveal.js-black
 ---
 
+<!-- layout: title -->
+
 # Reveal.js Black
 
 Theme: reveal.js-black
