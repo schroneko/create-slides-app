@@ -926,7 +926,14 @@ const externalThemes: ExternalThemeEntry[] = [
   },
 ];
 
-const seedDir = path.join(templatesRoot, "reveal.js-black");
+const defaultTemplateDir = path.join(templatesRoot, "default");
+const legacySeedDir = path.join(templatesRoot, "reveal.js-black");
+const seedDir = [defaultTemplateDir, legacySeedDir].find((candidate) => fs.existsSync(candidate));
+
+if (!seedDir) {
+  console.error(`Seed template not found in ${defaultTemplateDir} or ${legacySeedDir}.`);
+  process.exit(1);
+}
 
 const seedFiles = new Map<string, string>();
 for (const relativePath of [
@@ -947,7 +954,17 @@ for (const relativePath of [
   seedFiles.set(relativePath, fs.readFileSync(path.join(seedDir, relativePath), "utf8"));
 }
 
-function adaptRevealCss(originalCss: string, themeName: string): string {
+type ThemeAsset = {
+  id: string;
+  title: string;
+  css: string;
+  fontImports: string[];
+};
+
+function adaptRevealCss(
+  originalCss: string,
+  themeName: string,
+): { css: string; fontImports: string[] } {
   const dirName = `reveal.js-${themeName}`;
   const scope = `[data-theme="${dirName}"]`;
 
@@ -1025,18 +1042,19 @@ ${scope} {
  * Selectors adapted for create-slides-app engine.
  */`;
 
-  const parts = [header];
-  if (fontImports.length > 0) {
-    parts.push(fontImports.join("\n"));
-  }
-  parts.push(css);
+  const parts = [header, css];
 
   let result = parts.join("\n\n");
   result = result.replace(/\n{3,}/g, "\n\n");
-  return result.trim() + "\n";
+  return {
+    css: result.trim() + "\n",
+    fontImports,
+  };
 }
 
-function generateExternalThemeCss(theme: ExternalThemeEntry): string {
+function generateExternalThemeCss(
+  theme: ExternalThemeEntry,
+): { css: string; fontImports: string[] } {
   const header = `/*
  * ${theme.title}
  * Original: ${theme.source.url}
@@ -1062,10 +1080,13 @@ function generateExternalThemeCss(theme: ExternalThemeEntry): string {
   --color-line: ${theme.line};
 }`);
 
-  return parts.join("\n\n") + "\n";
+  return {
+    css: parts.join("\n\n") + "\n",
+    fontImports: theme.fontImports.map((url) => `@import url("${url}");`),
+  };
 }
 
-function renderParser(themeId: string): string {
+function renderParser(themeId = "reveal.js-black"): string {
   return seedFiles
     .get("src/engine/parser.ts")!
     .replace(
@@ -1074,13 +1095,13 @@ function renderParser(themeId: string): string {
     );
 }
 
-function renderMain(themeId: string): string {
+function renderMain(): string {
   return `import { createRoot } from "react-dom/client";
 import { App } from "./app";
 import slidesRaw from "../example.md?raw";
 import "katex/dist/katex.min.css";
 import "./styles/base.css";
-import "./styles/themes/${themeId}.css";
+import "./styles/themes/index.css";
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App markdown={slidesRaw} />);
@@ -1095,17 +1116,17 @@ if (import.meta.hot) {
 `;
 }
 
-function renderSlides(dirName: string, title: string): string {
+function renderSlides(themeName: string, title: string): string {
   return `---
 title: ${title}
-theme: ${dirName}
+theme: ${themeName}
 ---
 
 <!-- layout: title -->
 
 # ${title}
 
-Theme: ${dirName}
+Theme: ${themeName}
 
 ---
 
@@ -1172,39 +1193,54 @@ Press P to open the presenter window.
 `;
 }
 
-function renderThirdPartyNotice(themeName: string): string {
-  return `# Third-Party Notices
-
-## hakimel/reveal.js
-
-This template uses the ${themeName} theme CSS from reveal.js, adapted for
-the create-slides-app slide engine.
-
-- Project: \`hakimel/reveal.js\`
-- Source: <https://github.com/hakimel/reveal.js>
-- Theme CSS: <https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/${themeName}.css>
-- License: MIT
-
-${revealCopyright}
-
-${mitLicense}`;
+function renderThemesManifest(themeAssets: ThemeAsset[]): string {
+  return JSON.stringify(themeAssets.map((theme) => theme.id).sort(), null, 2) + "\n";
 }
 
-function renderExternalThirdPartyNotice(theme: ExternalThemeEntry): string {
-  return `# Third-Party Notices
+function renderThemeIndex(themeAssets: ThemeAsset[]): string {
+  const fontImports = [...new Set(themeAssets.flatMap((theme) => theme.fontImports))];
+  const themeImports = themeAssets
+    .map((theme) => `@import "./${theme.id}.css";`)
+    .sort();
+  return [...fontImports, ...themeImports].join("\n") + "\n";
+}
 
-## ${theme.source.project}
-
-This template uses colors and fonts from the ${theme.title} theme, adapted for
-the create-slides-app slide engine.
-
-- Project: \`${theme.source.project}\`
-- Source: <${theme.source.url}>
-- License: MIT
-
-${theme.source.copyright}
-
-${mitLicense}`;
+function renderThirdPartyNotice(): string {
+  const lines = [
+    "# Third-Party Notices",
+    "",
+    "## hakimel/reveal.js",
+    "",
+    "This template bundles the following reveal.js theme CSS files, adapted for the",
+    "create-slides-app slide engine.",
+    "",
+    ...themes.flatMap((theme) => [
+      `- ${theme.title}: <https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/${theme.name}.css>`,
+    ]),
+    "",
+    "- Project: `hakimel/reveal.js`",
+    "- Source: <https://github.com/hakimel/reveal.js>",
+    "- License: MIT",
+    "",
+    revealCopyright,
+    "",
+    ...externalThemes.flatMap((theme) => [
+      `## ${theme.title}`,
+      "",
+      `This template uses colors and fonts from the ${theme.title} theme, adapted for`,
+      "the create-slides-app slide engine.",
+      "",
+      `- Project: \`${theme.source.project}\``,
+      `- Source: <${theme.source.url}>`,
+      "- License: MIT",
+      "",
+      theme.source.copyright,
+      "",
+    ]),
+    mitLicense.trimEnd(),
+    "",
+  ];
+  return lines.join("\n");
 }
 
 function writeFile(targetPath: string, content: string): void {
@@ -1219,10 +1255,10 @@ if (!fs.existsSync(vendorDir)) {
   process.exit(1);
 }
 
-for (const theme of themes) {
-  const dirName = `reveal.js-${theme.name}`;
-  const targetDir = path.join(templatesRoot, dirName);
+const themeAssets: ThemeAsset[] = [];
 
+for (const theme of themes) {
+  const themeId = `reveal.js-${theme.name}`;
   const originalCssPath = path.join(vendorDir, `${theme.name}.css`);
   if (!fs.existsSync(originalCssPath)) {
     console.error(`Missing vendor CSS: ${originalCssPath}`);
@@ -1231,41 +1267,48 @@ for (const theme of themes) {
 
   const originalCss = fs.readFileSync(originalCssPath, "utf8");
   const adaptedCss = adaptRevealCss(originalCss, theme.name);
-
-  fs.rmSync(targetDir, { recursive: true, force: true });
-  fs.mkdirSync(targetDir, { recursive: true });
-
-  for (const [relativePath, content] of seedFiles) {
-    writeFile(path.join(targetDir, relativePath), content);
-  }
-
-  writeFile(path.join(targetDir, "src/engine/parser.ts"), renderParser(dirName));
-  writeFile(path.join(targetDir, "src/main.tsx"), renderMain(dirName));
-  writeFile(path.join(targetDir, "example.md"), renderSlides(dirName, theme.title));
-  writeFile(path.join(targetDir, "THIRD_PARTY_NOTICES.md"), renderThirdPartyNotice(theme.name));
-  writeFile(path.join(targetDir, "src/styles/themes", `${dirName}.css`), adaptedCss);
+  themeAssets.push({
+    id: themeId,
+    title: theme.title,
+    css: adaptedCss.css,
+    fontImports: adaptedCss.fontImports,
+  });
 }
 
 for (const theme of externalThemes) {
-  const targetDir = path.join(templatesRoot, theme.id);
-
-  fs.rmSync(targetDir, { recursive: true, force: true });
-  fs.mkdirSync(targetDir, { recursive: true });
-
-  for (const [relativePath, content] of seedFiles) {
-    writeFile(path.join(targetDir, relativePath), content);
-  }
-
-  writeFile(path.join(targetDir, "src/engine/parser.ts"), renderParser(theme.id));
-  writeFile(path.join(targetDir, "src/main.tsx"), renderMain(theme.id));
-  writeFile(path.join(targetDir, "example.md"), renderSlides(theme.id, theme.title));
-  writeFile(path.join(targetDir, "THIRD_PARTY_NOTICES.md"), renderExternalThirdPartyNotice(theme));
-  writeFile(
-    path.join(targetDir, "src/styles/themes", `${theme.id}.css`),
-    generateExternalThemeCss(theme),
-  );
+  const generatedCss = generateExternalThemeCss(theme);
+  themeAssets.push({
+    id: theme.id,
+    title: theme.title,
+    css: generatedCss.css,
+    fontImports: generatedCss.fontImports,
+  });
 }
 
-console.log(
-  `Generated ${themes.length} reveal.js templates and ${externalThemes.length} external templates.`,
-);
+themeAssets.sort((left, right) => left.id.localeCompare(right.id));
+
+for (const entry of fs.readdirSync(templatesRoot, { withFileTypes: true })) {
+  if (entry.isDirectory() && entry.name !== "default") {
+    fs.rmSync(path.join(templatesRoot, entry.name), { recursive: true, force: true });
+  }
+}
+
+fs.rmSync(defaultTemplateDir, { recursive: true, force: true });
+fs.mkdirSync(defaultTemplateDir, { recursive: true });
+
+for (const [relativePath, content] of seedFiles) {
+  writeFile(path.join(defaultTemplateDir, relativePath), content);
+}
+
+writeFile(path.join(defaultTemplateDir, "src/engine/parser.ts"), renderParser());
+writeFile(path.join(defaultTemplateDir, "src/main.tsx"), renderMain());
+writeFile(path.join(defaultTemplateDir, "example.md"), renderSlides("reveal.js-black", "Example Slides"));
+writeFile(path.join(defaultTemplateDir, "THIRD_PARTY_NOTICES.md"), renderThirdPartyNotice());
+writeFile(path.join(defaultTemplateDir, "themes.json"), renderThemesManifest(themeAssets));
+writeFile(path.join(defaultTemplateDir, "src/styles/themes/index.css"), renderThemeIndex(themeAssets));
+
+for (const theme of themeAssets) {
+  writeFile(path.join(defaultTemplateDir, "src/styles/themes", `${theme.id}.css`), theme.css);
+}
+
+console.log(`Generated templates/default with ${themeAssets.length} themes.`);

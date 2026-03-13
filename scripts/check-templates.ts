@@ -5,11 +5,8 @@ import { spawnSync } from "node:child_process";
 
 const repoRoot = process.cwd();
 const templatesRoot = path.join(repoRoot, "templates");
-const templateNames = fs
-  .readdirSync(templatesRoot, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name)
-  .sort();
+const defaultTemplateDir = path.join(templatesRoot, "default");
+const manifestPath = path.join(defaultTemplateDir, "themes.json");
 
 const requiredRelativePaths = [
   "THIRD_PARTY_NOTICES.md",
@@ -25,68 +22,84 @@ const requiredRelativePaths = [
   "src/engine/slide.tsx",
   "src/main.tsx",
   "src/styles/base.css",
+  "src/styles/themes/index.css",
+  "themes.json",
   "tsconfig.json",
   "vite.config.ts",
 ];
 
-for (const templateName of templateNames) {
-  const templateDir = path.join(templatesRoot, templateName);
+const templateDirs = fs
+  .readdirSync(templatesRoot, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .sort();
 
-  for (const relativePath of requiredRelativePaths) {
-    const targetPath = path.join(templateDir, relativePath);
-    if (!fs.existsSync(targetPath)) {
-      throw new Error(`Template "${templateName}" is missing ${relativePath}`);
-    }
-  }
+if (templateDirs.length !== 1 || templateDirs[0] !== "default") {
+  throw new Error(`Expected only templates/default, found: ${templateDirs.join(", ") || "(none)"}`);
+}
 
-  const themePath = path.join(templateDir, "src", "styles", "themes", `${templateName}.css`);
-  if (!fs.existsSync(themePath)) {
-    throw new Error(`Template "${templateName}" is missing src/styles/themes/${templateName}.css`);
+for (const relativePath of requiredRelativePaths) {
+  const targetPath = path.join(defaultTemplateDir, relativePath);
+  if (!fs.existsSync(targetPath)) {
+    throw new Error(`Template "default" is missing ${relativePath}`);
   }
 }
 
-const sampleTemplates = ["reveal.js-black", "reveal.js-black-contrast", "academic"];
+const themeNames = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as unknown;
+if (!Array.isArray(themeNames) || themeNames.some((value) => typeof value !== "string")) {
+  throw new Error("themes.json must be an array of strings");
+}
+
+const sortedThemeNames = [...themeNames].sort();
+const uniqueThemeNames = [...new Set(sortedThemeNames)];
+if (sortedThemeNames.length !== uniqueThemeNames.length) {
+  throw new Error("themes.json contains duplicate theme names");
+}
+
+for (const themeName of uniqueThemeNames) {
+  const themePath = path.join(defaultTemplateDir, "src", "styles", "themes", `${themeName}.css`);
+  if (!fs.existsSync(themePath)) {
+    throw new Error(`Template "default" is missing src/styles/themes/${themeName}.css`);
+  }
+}
+
+const indexCss = fs.readFileSync(
+  path.join(defaultTemplateDir, "src", "styles", "themes", "index.css"),
+  "utf8",
+);
+for (const themeName of uniqueThemeNames) {
+  if (!indexCss.includes(`@import "./${themeName}.css";`)) {
+    throw new Error(`Theme index is missing import for ${themeName}.css`);
+  }
+}
+
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "create-slides-app-templates-"));
 
 try {
-  const copiedTemplateDirs = sampleTemplates.map((templateName) => {
-    const sourceDir = path.join(templatesRoot, templateName);
-    const targetDir = path.join(tempRoot, templateName);
-    fs.cpSync(sourceDir, targetDir, { recursive: true });
-    return targetDir;
-  });
+  const copiedTemplateDir = path.join(tempRoot, "default");
+  fs.cpSync(defaultTemplateDir, copiedTemplateDir, { recursive: true });
 
   const install = spawnSync("npm", ["install"], {
-    cwd: copiedTemplateDirs[0],
+    cwd: copiedTemplateDir,
     stdio: "inherit",
     shell: process.platform === "win32",
   });
 
   if (install.status !== 0) {
-    throw new Error(`Template install failed: ${sampleTemplates[0]}`);
+    throw new Error("Template install failed: default");
   }
 
-  for (const templateDir of copiedTemplateDirs.slice(1)) {
-    fs.cpSync(path.join(copiedTemplateDirs[0], "node_modules"), path.join(templateDir, "node_modules"), {
-      recursive: true,
-    });
+  const build = spawnSync("npm", ["run", "build"], {
+    cwd: copiedTemplateDir,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+
+  if (build.status !== 0) {
+    throw new Error("Template build failed: default");
   }
 
-  for (const [index, templateName] of sampleTemplates.entries()) {
-    const build = spawnSync("npm", ["run", "build"], {
-      cwd: copiedTemplateDirs[index],
-      stdio: "inherit",
-      shell: process.platform === "win32",
-    });
-
-    if (build.status !== 0) {
-      throw new Error(`Template build failed: ${templateName}`);
-    }
-  }
-
-  console.log(
-    `Verified ${templateNames.length} template directories and built ${sampleTemplates.join(", ")}.`,
-  );
+  console.log(`Verified templates/default with ${uniqueThemeNames.length} themes and built it.`);
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
