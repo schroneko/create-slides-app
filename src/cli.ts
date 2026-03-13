@@ -32,31 +32,137 @@ interface CliOptions {
   port: number;
 }
 
+type CliFlagSpec = {
+  flags: string[];
+  valueName?: string;
+  description: string;
+  parse: (options: CliOptions, value: string | undefined, flag: string) => void;
+};
+
 interface ProjectState {
   markdownFileName: string;
   sourceMarkdownPath: string;
   sourceHash: string;
 }
 
+const helpUsageLines = [
+  "create-slides-app [slides.md] [--theme <name>]",
+  "create-slides-app [slides.md] --build",
+  "create-slides-app [slides.md] --export <pdf|mp4>",
+];
+
+const helpExampleLines = [
+  "create-slides-app deck.md --theme academic",
+];
+
+const helpNoteLines = [
+  `Shared runtimes are stored under ${resourcesDirName}/<theme>/`,
+  "Markdown files stay in place and are read directly by the runtime",
+];
+
+const cliFlagSpecs: CliFlagSpec[] = [
+  {
+    flags: ["--theme", "-t"],
+    valueName: "<name>",
+    description: `Use or create the shared runtime under ${resourcesDirName}/<theme>/ and set the markdown theme`,
+    parse: (options, value, flag) => {
+      if (!value) {
+        throw new Error(`Missing value for ${flag}`);
+      }
+      options.theme = value;
+    },
+  },
+  {
+    flags: ["--template"],
+    valueName: "<name>",
+    description: "Deprecated alias for --theme",
+    parse: (options, value, flag) => {
+      if (!value) {
+        throw new Error(`Missing value for ${flag}`);
+      }
+      options.theme = value;
+      options.deprecatedTemplateFlag = true;
+    },
+  },
+  {
+    flags: ["--scaffold-only"],
+    description: "Scaffold or refresh the shared runtime without installing dependencies",
+    parse: (options) => {
+      options.scaffoldOnly = true;
+    },
+  },
+  {
+    flags: ["--build"],
+    description: "Build static HTML to dist/ (no dev server)",
+    parse: (options) => {
+      options.build = true;
+    },
+  },
+  {
+    flags: ["--port", "-p"],
+    valueName: "<number>",
+    description: "Dev server port (default: 3030)",
+    parse: (options, value) => {
+      const port = Number(value);
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        throw new Error("--port requires a valid port number (1-65535)");
+      }
+      options.port = port;
+    },
+  },
+  {
+    flags: ["--export"],
+    valueName: "<pdf|mp4>",
+    description: "Export slides to PDF or MP4 video (requires Chrome; mp4 also requires ffmpeg)",
+    parse: (options, value) => {
+      if (value !== "pdf" && value !== "mp4") {
+        throw new Error("--export requires a format: pdf or mp4");
+      }
+      options.exportFormat = value;
+    },
+  },
+  {
+    flags: ["--help", "-h"],
+    description: "Show this message",
+    parse: (options) => {
+      options.help = true;
+    },
+  },
+];
+
+const cliFlagLookup = new Map(
+  cliFlagSpecs.flatMap((spec) => spec.flags.map((flag) => [flag, spec] as const)),
+);
+
+function formatHelpOption(spec: CliFlagSpec, width: number): string {
+  const label = spec.flags.join(", ") + (spec.valueName ? ` ${spec.valueName}` : "");
+  return `  ${label.padEnd(width)} ${spec.description}`;
+}
+
 function printHelp(): void {
-  console.log(`create-slides-app
+  const optionWidth =
+    Math.max(
+      ...cliFlagSpecs.map((spec) => spec.flags.join(", ").length + (spec.valueName ? spec.valueName.length + 1 : 0)),
+    ) + 2;
 
-Usage:
-  create-slides-app [slides.md] [--theme <name>]
-  create-slides-app [slides.md] --build
-  create-slides-app [slides.md] --export <pdf|mp4>
-
-Options:
-  --theme <name>       Theme name written to frontmatter (omit to choose interactively)
-  --template <name>    Deprecated alias for --theme
-  --build              Build static HTML to dist/ (no dev server)
-  --port <number>      Dev server port (default: 3030)
-  --export <pdf|mp4>   Export slides to PDF or MP4 video (requires Chrome; mp4 also requires ffmpeg)
-  --help               Show this message
-
-Examples:
-  create-slides-app deck.md --theme academic
-`);
+  console.log(
+    [
+      "create-slides-app",
+      "",
+      "Usage:",
+      ...helpUsageLines.map((line) => `  ${line}`),
+      "",
+      "Options:",
+      ...cliFlagSpecs.map((spec) => formatHelpOption(spec, optionWidth)),
+      "",
+      "Examples:",
+      ...helpExampleLines.map((line) => `  ${line}`),
+      "",
+      "Notes:",
+      ...helpNoteLines.map((line) => `  ${line}`),
+      "",
+    ].join("\n"),
+  );
 }
 
 function hasMarkdownExtension(value: string): boolean {
@@ -105,51 +211,13 @@ function parseArgs(argv: string[]): CliOptions {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
 
-    if (arg === "--help" || arg === "-h") {
-      options.help = true;
-      continue;
-    }
-
-    if (arg === "--scaffold-only") {
-      options.scaffoldOnly = true;
-      continue;
-    }
-
-    if (arg === "--build") {
-      options.build = true;
-      continue;
-    }
-
-    if (arg === "--export") {
-      const value = argv[index + 1];
-      if (value !== "pdf" && value !== "mp4") {
-        throw new Error("--export requires a format: pdf or mp4");
+    const flagSpec = cliFlagLookup.get(arg);
+    if (flagSpec) {
+      const value = flagSpec.valueName ? argv[index + 1] : undefined;
+      flagSpec.parse(options, value, arg);
+      if (flagSpec.valueName) {
+        index += 1;
       }
-      options.exportFormat = value;
-      index += 1;
-      continue;
-    }
-
-    if (arg === "--port" || arg === "-p") {
-      const value = Number(argv[index + 1]);
-      if (!Number.isInteger(value) || value < 1 || value > 65535) {
-        throw new Error("--port requires a valid port number (1-65535)");
-      }
-      options.port = value;
-      index += 1;
-      continue;
-    }
-
-    if (arg === "--theme" || arg === "-t" || arg === "--template") {
-      const value = argv[index + 1];
-      if (!value) {
-        throw new Error(`Missing value for ${arg}`);
-      }
-      options.theme = value;
-      if (arg === "--template") {
-        options.deprecatedTemplateFlag = true;
-      }
-      index += 1;
       continue;
     }
 
