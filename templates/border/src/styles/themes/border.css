@@ -1,0 +1,22 @@
+/*
+ * Border
+ * Original: https://github.com/rnd195/my-marp-themes
+ * Copyright (c) rnd195
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap");
+
+[data-theme="border"] {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #f7f7f7;
+  --color-surface: #f7f7f7;
+  --color-text: #0a0a0a;
+  --color-heading: #0a0a0a;
+  --color-accent: #303030;
+  --color-code-bg: rgba(100, 100, 100, 0.15);
+  --color-line: rgba(0, 0, 0, 0.15);
+}

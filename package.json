@@ -1,6 +1,6 @@
 {
   "name": "create-slides-app",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Create a Markdown-based slide presentation app with React",
   "keywords": [
     "cli",

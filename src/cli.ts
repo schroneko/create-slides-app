@@ -2,7 +2,9 @@
 
 import { intro, outro, text, select, isCancel, spinner } from "@clack/prompts";
 import { execSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +13,7 @@ import WebSocket from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const templatesRoot = path.resolve(__dirname, "..", "templates");
+const projectStateFile = ".create-slides-app.json";
 
 type ExportFormat = "pdf" | "mp4";
 
@@ -24,6 +27,12 @@ interface CliOptions {
   template?: string;
 }
 
+interface ProjectState {
+  markdownFileName: string;
+  sourceMarkdownPath: string;
+  sourceHash: string;
+}
+
 function printHelp(): void {
   console.log(`create-slides-app
 
@@ -33,15 +42,48 @@ Usage:
   create-slides-app [slides.md] --export <pdf|mp4>
 
 Options:
-  --template <name>    Template directory under templates/
+  --template <name>    Template directory under templates/ (omit to choose interactively)
   --build              Build static HTML to dist/ (no dev server)
   --export <pdf|mp4>   Export slides to PDF or MP4 video (requires Chrome; mp4 also requires ffmpeg)
   --help               Show this message
+
+Examples:
+  create-slides-app deck.md --template academic
 `);
 }
 
 function hasMarkdownExtension(value: string): boolean {
   return /\.(md|markdown)$/i.test(value);
+}
+
+function hashContent(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function readProjectState(targetDir: string): ProjectState | undefined {
+  const statePath = path.join(targetDir, projectStateFile);
+  if (!fs.existsSync(statePath)) {
+    return undefined;
+  }
+
+  const raw = JSON.parse(fs.readFileSync(statePath, "utf8")) as Partial<ProjectState>;
+  if (
+    typeof raw.markdownFileName !== "string" ||
+    typeof raw.sourceMarkdownPath !== "string" ||
+    typeof raw.sourceHash !== "string"
+  ) {
+    return undefined;
+  }
+
+  return {
+    markdownFileName: raw.markdownFileName,
+    sourceMarkdownPath: raw.sourceMarkdownPath,
+    sourceHash: raw.sourceHash,
+  };
+}
+
+function writeProjectState(targetDir: string, state: ProjectState): void {
+  fs.writeFileSync(path.join(targetDir, projectStateFile), JSON.stringify(state, null, 2) + "\n");
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -83,6 +125,10 @@ function parseArgs(argv: string[]): CliOptions {
       options.template = value;
       index += 1;
       continue;
+    }
+
+    if (arg.startsWith("-")) {
+      throw new Error(`Unknown argument: ${arg}`);
     }
 
     if (!options.projectName && !options.markdownPath) {
@@ -305,6 +351,100 @@ async function resolveTemplate(overrideTemplate?: string): Promise<string> {
   return selected;
 }
 
+function syncMarkdownFile(
+  targetDir: string,
+  markdownPath: string,
+  mdFileName: string,
+  overwriteExistingTarget = false,
+): void {
+  const targetMarkdownPath = path.join(targetDir, mdFileName);
+  const sourceContent = fs.readFileSync(markdownPath, "utf8");
+  const sourceHash = hashContent(sourceContent);
+  const state = readProjectState(targetDir);
+
+  if (overwriteExistingTarget) {
+    fs.writeFileSync(targetMarkdownPath, sourceContent);
+    writeProjectState(targetDir, {
+      markdownFileName: mdFileName,
+      sourceMarkdownPath: markdownPath,
+      sourceHash,
+    });
+    return;
+  }
+
+  if (!fs.existsSync(targetMarkdownPath)) {
+    fs.writeFileSync(targetMarkdownPath, sourceContent);
+    writeProjectState(targetDir, {
+      markdownFileName: mdFileName,
+      sourceMarkdownPath: markdownPath,
+      sourceHash,
+    });
+    return;
+  }
+
+  const targetContent = fs.readFileSync(targetMarkdownPath, "utf8");
+  const targetHash = hashContent(targetContent);
+
+  if (targetHash === sourceHash) {
+    writeProjectState(targetDir, {
+      markdownFileName: mdFileName,
+      sourceMarkdownPath: markdownPath,
+      sourceHash,
+    });
+    return;
+  }
+
+  if (!state) {
+    throw new Error(
+      `Refusing to overwrite "${mdFileName}" in the existing project because it has no import metadata.`,
+    );
+  }
+
+  if (state.markdownFileName !== mdFileName || state.sourceMarkdownPath !== markdownPath) {
+    throw new Error(
+      `Refusing to overwrite "${mdFileName}" because this project was scaffolded from a different markdown source.`,
+    );
+  }
+
+  if (targetHash !== state.sourceHash) {
+    throw new Error(
+      `Refusing to overwrite "${mdFileName}" because the project copy was modified after import.`,
+    );
+  }
+
+  fs.writeFileSync(targetMarkdownPath, sourceContent);
+  writeProjectState(targetDir, {
+    markdownFileName: mdFileName,
+    sourceMarkdownPath: markdownPath,
+    sourceHash,
+  });
+}
+
+async function ensurePortAvailable(port: number): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+
+    server.once("error", (error: NodeJS.ErrnoException) => {
+      if (error.code === "EADDRINUSE") {
+        reject(new Error(`Port ${port} is already in use. Stop the existing server and try again.`));
+        return;
+      }
+      reject(error);
+    });
+
+    server.listen(port, () => {
+      server.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+  });
+}
+
 function findChrome(): string | undefined {
   const candidates =
     process.platform === "darwin"
@@ -336,13 +476,21 @@ async function startDevServer(targetDir: string, port: number): Promise<ReturnTy
   });
 
   await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    let output = "";
     const timeout = setTimeout(() => {
+      settled = true;
       devProcess.kill();
       reject(new Error("Dev server failed to start within 30 seconds"));
     }, 30_000);
 
     const onData = (chunk: Buffer) => {
-      if (chunk.toString().includes("Local:")) {
+      output += chunk.toString();
+      if (output.length > 4000) {
+        output = output.slice(-4000);
+      }
+      if (!settled && chunk.toString().includes("Local:")) {
+        settled = true;
         clearTimeout(timeout);
         resolve();
       }
@@ -352,8 +500,23 @@ async function startDevServer(targetDir: string, port: number): Promise<ReturnTy
     devProcess.stderr?.on("data", onData);
 
     devProcess.on("error", (err) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
       clearTimeout(timeout);
       reject(err);
+    });
+
+    devProcess.on("exit", (code) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timeout);
+      reject(
+        new Error(output.trim() || `Dev server exited before it was ready (code ${code ?? "unknown"})`),
+      );
     });
   });
 
@@ -692,10 +855,14 @@ async function main(): Promise<void> {
     }
 
     if (markdownPath) {
-      fs.copyFileSync(markdownPath, path.join(targetDir, mdFileName));
+      syncMarkdownFile(targetDir, markdownPath, mdFileName, true);
     } else if (mdFileName !== "example.md") {
       fs.writeFileSync(path.join(targetDir, mdFileName), exampleMarkdown);
     }
+  }
+
+  if (alreadyScaffolded && markdownPath) {
+    syncMarkdownFile(targetDir, markdownPath, mdFileName);
   }
 
   if (options.scaffoldOnly) {
@@ -731,9 +898,16 @@ async function main(): Promise<void> {
   const port = 3030;
   const url = `http://localhost:${port}`;
 
+  await ensurePortAvailable(port);
   s.start(`Starting dev server on ${pc.cyan(url)}...`);
 
-  const devProcess = await startDevServer(targetDir, port);
+  let devProcess: ReturnType<typeof spawn>;
+  try {
+    devProcess = await startDevServer(targetDir, port);
+  } catch (error) {
+    s.stop("Dev server failed to start.");
+    throw error;
+  }
 
   s.stop(`Dev server running at ${pc.cyan(url)}`);
 

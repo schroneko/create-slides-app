@@ -1,0 +1,22 @@
+/*
+ * Graph Paper
+ * Original: https://github.com/rnd195/my-marp-themes
+ * Copyright (c) rnd195
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Work+Sans&display=swap");
+
+[data-theme="graph-paper"] {
+  --font-sans: "Work Sans", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #e3e3f1;
+  --color-surface: #e3e3f1;
+  --color-text: #121114;
+  --color-heading: #040014;
+  --color-accent: #040014;
+  --color-code-bg: #ffffff;
+  --color-line: rgba(4, 0, 20, 0.12);
+}

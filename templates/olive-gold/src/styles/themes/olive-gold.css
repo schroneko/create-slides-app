@@ -1,0 +1,23 @@
+/*
+ * Olive Gold
+ * Original: https://github.com/matsubara0507/marp-themes
+ * Copyright (c) MATSUBARA Nobutada
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap");
+
+[data-theme="olive-gold"] {
+  --font-sans: "Lato", sans-serif;
+  --font-mono: "Roboto Mono", monospace;
+  --color-bg: #CCA551;
+  --color-surface: #CCA551;
+  --color-text: #4e4f53;
+  --color-heading: #FFF2DD;
+  --color-accent: #FFF2DD;
+  --color-code-bg: #676053;
+  --color-line: rgba(78, 79, 83, 0.15);
+}

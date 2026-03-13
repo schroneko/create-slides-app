@@ -1,0 +1,22 @@
+/*
+ * MarpX Galileo
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Faustina:wght@300;400;600;700&display=swap");
+
+[data-theme="marpx-galileo"] {
+  --font-sans: "Faustina", serif;
+  --font-mono: monospace;
+  --color-bg: #0c1e38;
+  --color-surface: #162e51;
+  --color-text: #ffffff;
+  --color-heading: #ffbf00;
+  --color-accent: #ffbf00;
+  --color-code-bg: rgba(255, 255, 255, 0.08);
+  --color-line: rgba(255, 255, 255, 0.12);
+}

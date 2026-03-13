@@ -1,0 +1,22 @@
+/*
+ * MarpX Church
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Faustina:wght@300;400;600;700&display=swap");
+
+[data-theme="marpx-church"] {
+  --font-sans: "Faustina", serif;
+  --font-mono: monospace;
+  --color-bg: #ebebeb;
+  --color-surface: #f6f6f6;
+  --color-text: #040d21;
+  --color-heading: #00306b;
+  --color-accent: #31406b;
+  --color-code-bg: #fffbe7;
+  --color-line: rgba(4, 13, 33, 0.12);
+}

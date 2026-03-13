@@ -1,0 +1,20 @@
+/*
+ * Catppuccin Frappe
+ * Original: https://github.com/catppuccin/reveal.js
+ * Copyright (c) Catppuccin contributors
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+[data-theme="catppuccin-frappe"] {
+  --font-sans: system-ui, sans-serif;
+  --font-mono: monospace;
+  --color-bg: #303446;
+  --color-surface: #292c3c;
+  --color-text: #c6d0f5;
+  --color-heading: #8caaee;
+  --color-accent: #babbf1;
+  --color-code-bg: #232634;
+  --color-line: rgba(198, 208, 245, 0.15);
+}

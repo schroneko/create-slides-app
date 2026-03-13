@@ -1,0 +1,20 @@
+/*
+ * Rose Pine Moon
+ * Original: https://github.com/RAINBOWFLESH/rose-pine-marp
+ * Copyright (c) RAINBOWFLESH
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+[data-theme="rose-pine-moon"] {
+  --font-sans: system-ui, sans-serif;
+  --font-mono: monospace;
+  --color-bg: #232136;
+  --color-surface: #2a273f;
+  --color-text: #e0def4;
+  --color-heading: #ea9a97;
+  --color-accent: #c4a7e7;
+  --color-code-bg: #393552;
+  --color-line: rgba(224, 222, 244, 0.12);
+}

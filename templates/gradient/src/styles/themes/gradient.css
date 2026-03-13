@@ -1,0 +1,22 @@
+/*
+ * Gradient
+ * Original: https://github.com/rnd195/my-marp-themes
+ * Copyright (c) rnd195
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap");
+
+[data-theme="gradient"] {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #dccee0;
+  --color-surface: #c9d2d6;
+  --color-text: #333333;
+  --color-heading: #842174;
+  --color-accent: #9d30a6;
+  --color-code-bg: rgba(255, 255, 255, 0.68);
+  --color-line: rgba(0, 0, 0, 0.12);
+}

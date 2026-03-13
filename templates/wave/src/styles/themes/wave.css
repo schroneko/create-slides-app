@@ -1,0 +1,22 @@
+/*
+ * Wave
+ * Original: https://github.com/JuliusWiedemann/MarpThemeWave
+ * Copyright (c) Julius Wiedemann
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500&display=swap");
+
+[data-theme="wave"] {
+  --font-sans: "Roboto", sans-serif;
+  --font-mono: monospace;
+  --color-bg: #002233;
+  --color-surface: #002451;
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-accent: #80B3FF;
+  --color-code-bg: #002451;
+  --color-line: rgba(255, 255, 255, 0.12);
+}

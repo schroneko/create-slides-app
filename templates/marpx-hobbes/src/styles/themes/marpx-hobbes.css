@@ -1,0 +1,22 @@
+/*
+ * MarpX Hobbes
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Bitter:wght@100;400;700;900&display=swap");
+
+[data-theme="marpx-hobbes"] {
+  --font-sans: "Bitter", serif;
+  --font-mono: monospace;
+  --color-bg: #dcded3;
+  --color-surface: #dcded3;
+  --color-text: #2e2e2e;
+  --color-heading: #242060;
+  --color-accent: #f0a211;
+  --color-code-bg: #fffbe7;
+  --color-line: rgba(46, 46, 46, 0.12);
+}

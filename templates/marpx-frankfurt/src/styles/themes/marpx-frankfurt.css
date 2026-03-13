@@ -1,0 +1,22 @@
+/*
+ * MarpX Frankfurt
+ * Original: https://github.com/cunhapaulo/MarpX
+ * Copyright (c) Paulo Cunha
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Faustina:wght@300;400;600;700&display=swap");
+
+[data-theme="marpx-frankfurt"] {
+  --font-sans: "Faustina", serif;
+  --font-mono: monospace;
+  --color-bg: #f5f4ef;
+  --color-surface: #eff4fa;
+  --color-text: #000000;
+  --color-heading: #02000a;
+  --color-accent: #3e6ceb;
+  --color-code-bg: #fffbe7;
+  --color-line: rgba(0, 0, 0, 0.12);
+}

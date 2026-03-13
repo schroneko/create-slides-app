@@ -97,6 +97,89 @@ try {
     throw new Error("unknown template did not produce the expected error");
   }
 
+  const unknownOption = spawnSync(
+    process.execPath,
+    [path.join(repoRoot, "dist/cli.js"), "--list-template"],
+    {
+      cwd: tempRoot,
+      encoding: "utf8",
+    },
+  );
+
+  if (unknownOption.status === 0) {
+    throw new Error("unknown option should have failed");
+  }
+
+  if (
+    !(unknownOption.stderr || unknownOption.stdout).includes('Unknown argument: --list-template')
+  ) {
+    throw new Error("unknown option did not produce the expected error");
+  }
+
+  fs.writeFileSync(
+    path.join(tempRoot, "input-deck.md"),
+    "# Imported Deck\n\nUpdated from source.\n",
+  );
+
+  const resyncResult = spawnSync(
+    process.execPath,
+    [
+      path.join(repoRoot, "dist/cli.js"),
+      "input-deck.md",
+      "--template",
+      "reveal.js-black",
+      "--scaffold-only",
+    ],
+    {
+      cwd: tempRoot,
+      encoding: "utf8",
+    },
+  );
+
+  if (resyncResult.status !== 0) {
+    throw new Error(
+      `markdown resync failed: ${resyncResult.stderr || resyncResult.stdout || "failed"}`,
+    );
+  }
+
+  const resyncedSlides = fs.readFileSync(path.join(tempRoot, "input-deck", "input-deck.md"), "utf8");
+  if (resyncedSlides !== "# Imported Deck\n\nUpdated from source.\n") {
+    throw new Error("existing project did not refresh from the source markdown");
+  }
+
+  fs.writeFileSync(path.join(tempRoot, "input-deck", "input-deck.md"), "# Local change\n");
+  fs.writeFileSync(
+    path.join(tempRoot, "input-deck.md"),
+    "# Imported Deck\n\nUpdated again.\n",
+  );
+
+  const conflictResult = spawnSync(
+    process.execPath,
+    [
+      path.join(repoRoot, "dist/cli.js"),
+      "input-deck.md",
+      "--template",
+      "reveal.js-black",
+      "--scaffold-only",
+    ],
+    {
+      cwd: tempRoot,
+      encoding: "utf8",
+    },
+  );
+
+  if (conflictResult.status === 0) {
+    throw new Error("markdown conflict should have failed");
+  }
+
+  if (
+    !(conflictResult.stderr || conflictResult.stdout).includes(
+      'Refusing to overwrite "input-deck.md" because the project copy was modified after import.',
+    )
+  ) {
+    throw new Error("markdown conflict did not produce the expected error");
+  }
+
   const copiedThemeCss = fs.readFileSync(
     path.join(tempRoot, "input-deck", "src", "styles", "themes", "reveal.js-black.css"),
     "utf8",

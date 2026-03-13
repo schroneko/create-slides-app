@@ -1,0 +1,23 @@
+/*
+ * Olive
+ * Original: https://github.com/matsubara0507/marp-themes
+ * Copyright (c) MATSUBARA Nobutada
+ * License: MIT
+ *
+ * Colors adapted for create-slides-app engine.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap");
+
+[data-theme="olive"] {
+  --font-sans: "Lato", sans-serif;
+  --font-mono: "Roboto Mono", monospace;
+  --color-bg: #4e4f53;
+  --color-surface: #4e4f53;
+  --color-text: #FFF2DD;
+  --color-heading: #CCA551;
+  --color-accent: #CCA551;
+  --color-code-bg: #dcd1c1;
+  --color-line: rgba(255, 242, 221, 0.15);
+}
