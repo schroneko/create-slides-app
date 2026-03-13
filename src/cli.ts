@@ -427,7 +427,9 @@ async function ensurePortAvailable(port: number): Promise<void> {
 
     server.once("error", (error: NodeJS.ErrnoException) => {
       if (error.code === "EADDRINUSE") {
-        reject(new Error(`Port ${port} is already in use. Stop the existing server and try again.`));
+        reject(
+          new Error(`Port ${port} is already in use. Stop the existing server and try again.`),
+        );
         return;
       }
       reject(error);
@@ -515,7 +517,9 @@ async function startDevServer(targetDir: string, port: number): Promise<ReturnTy
       settled = true;
       clearTimeout(timeout);
       reject(
-        new Error(output.trim() || `Dev server exited before it was ready (code ${code ?? "unknown"})`),
+        new Error(
+          output.trim() || `Dev server exited before it was ready (code ${code ?? "unknown"})`,
+        ),
       );
     });
   });
@@ -850,7 +854,7 @@ async function main(): Promise<void> {
     if (mdFileName !== "example.md") {
       const mainTsxPath = path.join(targetDir, "src/main.tsx");
       const mainTsx = fs.readFileSync(mainTsxPath, "utf-8");
-      fs.writeFileSync(mainTsxPath, mainTsx.replace("example.md", mdFileName));
+      fs.writeFileSync(mainTsxPath, mainTsx.replaceAll("example.md", mdFileName));
       fs.unlinkSync(path.join(targetDir, "example.md"));
     }
 
@@ -911,6 +915,22 @@ async function main(): Promise<void> {
 
   s.stop(`Dev server running at ${pc.cyan(url)}`);
 
+  let watcher: fs.FSWatcher | undefined;
+  if (markdownPath) {
+    const targetMarkdownPath = path.join(targetDir, mdFileName);
+    watcher = fs.watch(markdownPath, () => {
+      try {
+        const content = fs.readFileSync(markdownPath, "utf8");
+        fs.writeFileSync(targetMarkdownPath, content);
+        writeProjectState(targetDir, {
+          markdownFileName: mdFileName,
+          sourceMarkdownPath: markdownPath,
+          sourceHash: hashContent(content),
+        });
+      } catch {}
+    });
+  }
+
   const openCommand =
     process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   spawn(openCommand, [url], { stdio: "ignore", detached: true }).unref();
@@ -921,6 +941,7 @@ async function main(): Promise<void> {
 
   await new Promise<void>((resolve) => {
     const onSignal = () => {
+      watcher?.close();
       devProcess.kill();
       resolve();
     };
