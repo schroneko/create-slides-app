@@ -32,7 +32,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts",
-    "check": "npm run build && npm run smoke && npm run check:template",
+    "check": "npm run build && npm run smoke && npm run check:template && npm run lint:text",
     "check:template": "node --import tsx ./scripts/check-templates.ts",
     "dev": "tsup src/cli.ts --format esm --watch",
     "format": "oxfmt .",
@@ -41,7 +41,9 @@
     "smoke": "node --import tsx ./scripts/smoke.ts",
     "prepublishOnly": "npm run build && npm run smoke",
     "lint": "oxlint . --ignore-pattern node_modules --ignore-pattern dist --ignore-pattern build --ignore-pattern .next --ignore-pattern coverage --ignore-pattern .turbo --ignore-pattern .wrangler --ignore-pattern .build --ignore-pattern .venv",
-    "lint:fix": "oxlint --fix . --ignore-pattern node_modules --ignore-pattern dist --ignore-pattern build --ignore-pattern .next --ignore-pattern coverage --ignore-pattern .turbo --ignore-pattern .wrangler --ignore-pattern .build --ignore-pattern .venv"
+    "lint:fix": "oxlint --fix . --ignore-pattern node_modules --ignore-pattern dist --ignore-pattern build --ignore-pattern .next --ignore-pattern coverage --ignore-pattern .turbo --ignore-pattern .wrangler --ignore-pattern .build --ignore-pattern .venv",
+    "lint:text": "textlint \"**/*.md\"",
+    "lint:text:fix": "textlint --fix \"**/*.md\""
   },
   "dependencies": {
     "@clack/prompts": "^1.1.0",
@@ -56,7 +58,9 @@
     "oxlint": "^1.57.0",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "textlint": "^15.5.1",
+    "textlint-rule-preset-ja-spacing": "^2.4.3"
   },
   "engines": {
     "node": "^24.0.0"
