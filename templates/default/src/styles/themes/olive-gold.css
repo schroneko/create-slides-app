@@ -13,11 +13,11 @@
 [data-theme="olive-gold"] {
   --font-sans: "Lato", sans-serif;
   --font-mono: "Roboto Mono", monospace;
-  --color-bg: #CCA551;
-  --color-surface: #CCA551;
+  --color-bg: #cca551;
+  --color-surface: #cca551;
   --color-text: #4e4f53;
-  --color-heading: #FFF2DD;
-  --color-accent: #FFF2DD;
+  --color-heading: #fff2dd;
+  --color-accent: #fff2dd;
   --color-code-bg: #676053;
   --color-line: rgba(78, 79, 83, 0.15);
 }

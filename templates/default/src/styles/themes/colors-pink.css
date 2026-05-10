@@ -13,11 +13,11 @@
 [data-theme="colors-pink"] {
   --font-sans: "Lato", sans-serif;
   --font-mono: "Roboto Mono", monospace;
-  --color-bg: #FFF2DD;
-  --color-surface: #FFF2DD;
-  --color-text: #465A65;
-  --color-heading: #FF3F80;
-  --color-accent: #FF3F80;
+  --color-bg: #fff2dd;
+  --color-surface: #fff2dd;
+  --color-text: #465a65;
+  --color-heading: #ff3f80;
+  --color-accent: #ff3f80;
   --color-code-bg: rgba(70, 90, 101, 0.1);
   --color-line: rgba(70, 90, 101, 0.12);
 }

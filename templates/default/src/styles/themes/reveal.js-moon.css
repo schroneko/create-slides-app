@@ -245,13 +245,13 @@
   border-bottom: 1px solid;
 }
 
-[data-theme="reveal.js-moon"] .slide table th[align=center],
-[data-theme="reveal.js-moon"] .slide table td[align=center] {
+[data-theme="reveal.js-moon"] .slide table th[align="center"],
+[data-theme="reveal.js-moon"] .slide table td[align="center"] {
   text-align: center;
 }
 
-[data-theme="reveal.js-moon"] .slide table th[align=right],
-[data-theme="reveal.js-moon"] .slide table td[align=right] {
+[data-theme="reveal.js-moon"] .slide table th[align="right"],
+[data-theme="reveal.js-moon"] .slide table td[align="right"] {
   text-align: right;
 }
 

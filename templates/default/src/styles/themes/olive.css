@@ -15,9 +15,9 @@
   --font-mono: "Roboto Mono", monospace;
   --color-bg: #4e4f53;
   --color-surface: #4e4f53;
-  --color-text: #FFF2DD;
-  --color-heading: #CCA551;
-  --color-accent: #CCA551;
+  --color-text: #fff2dd;
+  --color-heading: #cca551;
+  --color-accent: #cca551;
   --color-code-bg: #dcd1c1;
   --color-line: rgba(255, 242, 221, 0.15);
 }

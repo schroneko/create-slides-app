@@ -13,11 +13,11 @@
 [data-theme="colors-green"] {
   --font-sans: "Lato", sans-serif;
   --font-mono: "Roboto Mono", monospace;
-  --color-bg: #FFF2DD;
-  --color-surface: #FFF2DD;
-  --color-text: #465A65;
-  --color-heading: #32B490;
-  --color-accent: #32B490;
+  --color-bg: #fff2dd;
+  --color-surface: #fff2dd;
+  --color-text: #465a65;
+  --color-heading: #32b490;
+  --color-accent: #32b490;
   --color-code-bg: rgba(70, 90, 101, 0.1);
   --color-line: rgba(70, 90, 101, 0.12);
 }

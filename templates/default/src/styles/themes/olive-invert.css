@@ -13,11 +13,11 @@
 [data-theme="olive-invert"] {
   --font-sans: "Lato", sans-serif;
   --font-mono: "Roboto Mono", monospace;
-  --color-bg: #FFF2DD;
-  --color-surface: #FFF2DD;
+  --color-bg: #fff2dd;
+  --color-surface: #fff2dd;
   --color-text: #4e4f53;
-  --color-heading: #CCA551;
-  --color-accent: #CCA551;
+  --color-heading: #cca551;
+  --color-accent: #cca551;
   --color-code-bg: rgba(78, 79, 83, 0.1);
   --color-line: rgba(78, 79, 83, 0.15);
 }

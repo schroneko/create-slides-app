@@ -7,7 +7,13 @@
  * Selectors adapted for create-slides-app engine.
  */
 
-section.has-dark-background, section.has-dark-background h1, section.has-dark-background h2, section.has-dark-background h3, section.has-dark-background h4, section.has-dark-background h5, section.has-dark-background h6 {
+section.has-dark-background,
+section.has-dark-background h1,
+section.has-dark-background h2,
+section.has-dark-background h3,
+section.has-dark-background h4,
+section.has-dark-background h5,
+section.has-dark-background h6 {
   color: #fff;
 }
 
@@ -25,7 +31,10 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   --r-heading-text-transform: uppercase;
   --r-heading-text-shadow: none;
   --r-heading-font-weight: normal;
-  --r-heading1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);
+  --r-heading1-text-shadow:
+    0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa,
+    0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3),
+    0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);
   --r-heading1-size: clamp(1.5em, 4vw, 2.5em);
   --r-heading2-size: 2.11em;
   --r-heading3-size: 1.55em;
@@ -42,11 +51,39 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
 
 [data-theme="reveal.js-beige"] body {
   background: rgb(247, 242, 211);
-  background: -moz-radial-gradient(center, circle cover, rgb(255, 255, 255) 0%, rgb(247, 242, 211) 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%, rgb(255, 255, 255)), color-stop(100%, rgb(247, 242, 211)));
-  background: -webkit-radial-gradient(center, circle cover, rgb(255, 255, 255) 0%, rgb(247, 242, 211) 100%);
-  background: -o-radial-gradient(center, circle cover, rgb(255, 255, 255) 0%, rgb(247, 242, 211) 100%);
-  background: -ms-radial-gradient(center, circle cover, rgb(255, 255, 255) 0%, rgb(247, 242, 211) 100%);
+  background: -moz-radial-gradient(
+    center,
+    circle cover,
+    rgb(255, 255, 255) 0%,
+    rgb(247, 242, 211) 100%
+  );
+  background: -webkit-gradient(
+    radial,
+    center center,
+    0px,
+    center center,
+    100%,
+    color-stop(0%, rgb(255, 255, 255)),
+    color-stop(100%, rgb(247, 242, 211))
+  );
+  background: -webkit-radial-gradient(
+    center,
+    circle cover,
+    rgb(255, 255, 255) 0%,
+    rgb(247, 242, 211) 100%
+  );
+  background: -o-radial-gradient(
+    center,
+    circle cover,
+    rgb(255, 255, 255) 0%,
+    rgb(247, 242, 211) 100%
+  );
+  background: -ms-radial-gradient(
+    center,
+    circle cover,
+    rgb(255, 255, 255) 0%,
+    rgb(247, 242, 211) 100%
+  );
   background: radial-gradient(center, circle cover, rgb(255, 255, 255) 0%, rgb(247, 242, 211) 100%);
   background-color: var(--r-background-color);
 }
@@ -255,13 +292,13 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   border-bottom: 1px solid;
 }
 
-[data-theme="reveal.js-beige"] .slide table th[align=center],
-[data-theme="reveal.js-beige"] .slide table td[align=center] {
+[data-theme="reveal.js-beige"] .slide table th[align="center"],
+[data-theme="reveal.js-beige"] .slide table td[align="center"] {
   text-align: center;
 }
 
-[data-theme="reveal.js-beige"] .slide table th[align=right],
-[data-theme="reveal.js-beige"] .slide table td[align=right] {
+[data-theme="reveal.js-beige"] .slide table th[align="right"],
+[data-theme="reveal.js-beige"] .slide table td[align="right"] {
   text-align: right;
 }
 
