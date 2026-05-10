@@ -56,11 +56,11 @@
     "@types/ws": "^8.18.1",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.57.0",
+    "textlint": "^15.5.1",
+    "textlint-rule-preset-ja-spacing": "^2.4.3",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2",
-    "textlint": "^15.5.1",
-    "textlint-rule-preset-ja-spacing": "^2.4.3"
+    "typescript": "^6.0.2"
   },
   "engines": {
     "node": "^24.0.0"

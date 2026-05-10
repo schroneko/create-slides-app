@@ -26,7 +26,9 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
-        - run: npm run lint:text
+
+      - name: Textlint
+        run: npm run lint:text
 
       - name: Format check
         run: npm run format:check
