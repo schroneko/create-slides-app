@@ -27,5 +27,8 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Format check
+        run: npm run format:check
+
       - name: Verify project
         run: npm run check
