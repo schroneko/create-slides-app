@@ -54,7 +54,7 @@
   "devDependencies": {
     "@types/node": "^25.5.0",
     "@types/ws": "^8.18.1",
-    "oxfmt": "^0.42.0",
+    "oxfmt": "^0.74.0",
     "oxlint": "^1.57.0",
     "textlint": "^15.5.1",
     "textlint-rule-preset-ja-spacing": "^2.4.3",
