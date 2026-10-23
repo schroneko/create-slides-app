@@ -1054,6 +1054,19 @@ async function main(): Promise<void> {
       fs.writeFileSync(sourceMarkdownPath, buildExampleMarkdown(theme));
       syncMarkdownFile(targetDir, sourceMarkdownPath, theme);
     }
+  } else {
+    const pkgPath = path.join(targetDir, "package.json");
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+    const templatePkg = JSON.parse(
+      fs.readFileSync(path.join(defaultTemplateDir, "package.json"), "utf-8"),
+    );
+    pkg.dependencies = { ...pkg.dependencies, katex: templatePkg.dependencies.katex };
+    pkg.overrides = {
+      ...pkg.overrides,
+      katex: templatePkg.overrides.katex,
+      tinypool: templatePkg.overrides.tinypool,
+    };
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
   }
 
   prepareThemeWorkspace(targetDir, theme);
