@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import assert from "node:assert/strict";
 
 const repoRoot = process.cwd();
 const templatesRoot = path.join(repoRoot, "templates");
@@ -99,15 +100,15 @@ try {
     throw new Error("Template security audit failed: default");
   }
 
-  const math = spawnSync(
-    process.execPath,
-    [
-      "--input-type=module",
-      "-e",
-      'import assert from "node:assert/strict"; import katex from "katex"; import {unified} from "unified"; import remarkParse from "remark-parse"; import remarkMath from "remark-math"; import remarkRehype from "remark-rehype"; import rehypeKatex from "rehype-katex"; assert.match(katex.renderToString("x^2 + y^2"), /katex/); const processor = unified().use(remarkParse).use(remarkMath).use(remarkRehype).use(rehypeKatex); const result = await processor.run(processor.parse("$x^2 + y^2$")); assert.match(JSON.stringify(result), /katex/);',
-    ],
-    { cwd: copiedTemplateDir, stdio: "inherit" },
-  );
+  const mathArgs = [
+    "--input-type=module",
+    "-e",
+    'import assert from "node:assert/strict"; import katex from "katex"; import {unified} from "unified"; import remarkParse from "remark-parse"; import remarkMath from "remark-math"; import remarkRehype from "remark-rehype"; import rehypeKatex from "rehype-katex"; assert.match(katex.renderToString("x^2 + y^2"), /katex/); const processor = unified().use(remarkParse).use(remarkMath).use(remarkRehype).use(rehypeKatex); const result = await processor.run(processor.parse("$x^2 + y^2$")); assert.match(JSON.stringify(result), /katex/);',
+  ];
+  const math = spawnSync(process.execPath, mathArgs, {
+    cwd: copiedTemplateDir,
+    stdio: "inherit",
+  });
 
   if (math.status !== 0) {
     throw new Error("Template math rendering failed: default");
@@ -122,6 +123,49 @@ try {
   if (build.status !== 0) {
     throw new Error("Template build failed: default");
   }
+
+  const reusedRuntimeDir = path.join(tempRoot, "themes", "reveal.js-black");
+  fs.mkdirSync(path.dirname(reusedRuntimeDir), { recursive: true });
+  fs.renameSync(copiedTemplateDir, reusedRuntimeDir);
+  const reusedPackagePath = path.join(reusedRuntimeDir, "package.json");
+  const reusedPackage = JSON.parse(fs.readFileSync(reusedPackagePath, "utf8"));
+  reusedPackage.name = "custom-reused-runtime";
+  reusedPackage.dependencies.katex = "0.16.22";
+  reusedPackage.dependencies["is-number"] = "7.0.0";
+  reusedPackage.scripts.custom = "node -e 'process.exit(0)'";
+  reusedPackage.overrides.katex = "0.16.22";
+  reusedPackage.overrides.tinypool = "2.1.0";
+  reusedPackage.overrides["is-number"] = "7.0.0";
+  fs.writeFileSync(reusedPackagePath, JSON.stringify(reusedPackage, null, 2) + "\n");
+  const reusedMarkdown = "---\ntheme: reveal.js-black\n---\n\n# Reused runtime\n\n$x^2 + y^2$\n";
+  fs.writeFileSync(path.join(tempRoot, "reused.md"), reusedMarkdown);
+  const reusedBuild = spawnSync(
+    process.execPath,
+    [path.join(repoRoot, "dist/cli.js"), "reused.md", "--theme", "reveal.js-black", "--build"],
+    { cwd: tempRoot, stdio: "inherit" },
+  );
+  assert.equal(reusedBuild.status, 0, "Existing runtime CLI install and build failed");
+  const refreshedPackage = JSON.parse(fs.readFileSync(reusedPackagePath, "utf8"));
+  const templatePackage = JSON.parse(
+    fs.readFileSync(path.join(defaultTemplateDir, "package.json"), "utf8"),
+  );
+  assert.deepEqual(refreshedPackage, {
+    ...reusedPackage,
+    dependencies: { ...reusedPackage.dependencies, katex: templatePackage.dependencies.katex },
+    overrides: { ...reusedPackage.overrides, ...templatePackage.overrides },
+  });
+  assert.equal(fs.readFileSync(path.join(tempRoot, "reused.md"), "utf8"), reusedMarkdown);
+  const reusedAudit = spawnSync("npm", ["audit"], {
+    cwd: reusedRuntimeDir,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+  assert.equal(reusedAudit.status, 0, "Existing runtime security audit failed");
+  const reusedMath = spawnSync(process.execPath, mathArgs, {
+    cwd: reusedRuntimeDir,
+    stdio: "inherit",
+  });
+  assert.equal(reusedMath.status, 0, "Existing runtime math rendering failed");
 
   console.log(`Verified templates/default with ${uniqueThemeNames.length} themes and built it.`);
 } finally {

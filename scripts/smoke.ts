@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -251,6 +252,45 @@ try {
     throw new Error("vite.config.ts does not allow access to the source markdown directory");
   }
 
+  const runtimeDir = path.join(tempRoot, "themes", "reveal.js-black");
+  const packagePath = path.join(runtimeDir, "package.json");
+  const templatePackage = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, "templates", "default", "package.json"), "utf8"),
+  );
+  const customPackage = {
+    ...JSON.parse(fs.readFileSync(packagePath, "utf8")),
+    name: "custom-slides",
+    version: "9.8.7",
+    description: "User-managed slide runtime",
+    dependencies: {
+      ...templatePackage.dependencies,
+      katex: "^0.16.0",
+      react: "^18.3.1",
+      "is-number": "^7.0.0",
+    },
+    devDependencies: {
+      ...templatePackage.devDependencies,
+      vite: "^7.0.0",
+    },
+    scripts: {
+      ...templatePackage.scripts,
+      custom: "echo custom",
+    },
+    overrides: {
+      katex: "0.16.0",
+      tinypool: "2.1.0",
+      "ansi-regex": "^6.1.0",
+      "custom-parent": { "custom-child": "^1.0.0" },
+    },
+    customMetadata: { preserved: true },
+  };
+  fs.writeFileSync(packagePath, JSON.stringify(customPackage, null, 2) + "\n");
+
+  const appPath = path.join(runtimeDir, "src", "app.tsx");
+  const customApp =
+    fs.readFileSync(appPath, "utf8") + '\nexport const customRuntimeValue = "preserved";\n';
+  fs.writeFileSync(appPath, customApp);
+
   const rerunResult = spawnSync(
     process.execPath,
     [
@@ -271,6 +311,25 @@ try {
       `re-run on existing runtime failed: ${rerunResult.stderr || rerunResult.stdout || "failed"}`,
     );
   }
+
+  assert.deepStrictEqual(
+    JSON.parse(fs.readFileSync(packagePath, "utf8")),
+    {
+      ...customPackage,
+      dependencies: {
+        ...customPackage.dependencies,
+        katex: templatePackage.dependencies.katex,
+      },
+      overrides: {
+        ...customPackage.overrides,
+        katex: templatePackage.overrides.katex,
+        tinypool: templatePackage.overrides.tinypool,
+      },
+    },
+    "existing runtime should refresh only managed security package fields during scaffold-only",
+  );
+  assert.equal(fs.readFileSync(appPath, "utf8"), customApp);
+  assert.equal(fs.readFileSync(path.join(tempRoot, "example.md"), "utf8"), createdMd);
 
   console.log(`Smoke test passed: ${tempRoot}`);
 } finally {
