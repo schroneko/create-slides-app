@@ -89,6 +89,30 @@ try {
     throw new Error("Template install failed: default");
   }
 
+  const audit = spawnSync("npm", ["audit"], {
+    cwd: copiedTemplateDir,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+
+  if (audit.status !== 0) {
+    throw new Error("Template security audit failed: default");
+  }
+
+  const math = spawnSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      'import assert from "node:assert/strict"; import katex from "katex"; import {unified} from "unified"; import remarkParse from "remark-parse"; import remarkMath from "remark-math"; import remarkRehype from "remark-rehype"; import rehypeKatex from "rehype-katex"; assert.match(katex.renderToString("x^2 + y^2"), /katex/); const processor = unified().use(remarkParse).use(remarkMath).use(remarkRehype).use(rehypeKatex); const result = await processor.run(processor.parse("$x^2 + y^2$")); assert.match(JSON.stringify(result), /katex/);',
+    ],
+    { cwd: copiedTemplateDir, stdio: "inherit" },
+  );
+
+  if (math.status !== 0) {
+    throw new Error("Template math rendering failed: default");
+  }
+
   const build = spawnSync("npm", ["run", "build"], {
     cwd: copiedTemplateDir,
     stdio: "inherit",

@@ -116,13 +116,13 @@ function rehypeFragments(fragmentCount: number, currentFragment: number) {
               fragmentIndex++;
               const cls = fragmentIndex <= currentFragment ? "fragment-visible" : "fragment-hidden";
               li.properties = li.properties ?? {};
-              const existing = li.properties.className;
+              const existing: unknown = li.properties.className;
               if (Array.isArray(existing)) {
                 existing.push(cls);
               } else if (typeof existing === "string") {
-                li.properties.className = `${existing} ${cls}`;
+                li.properties.className = [...existing.split(/\s+/).filter(Boolean), cls];
               } else {
-                li.properties.className = cls;
+                li.properties.className = [cls];
               }
             }
           }

@@ -31,7 +31,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "tsup src/cli.ts --format esm --dts",
+    "build": "tsup src/cli.ts --format esm && tsc --emitDeclarationOnly",
     "check": "npm run build && npm run smoke && npm run check:template && npm run lint:text",
     "check:template": "node --import tsx ./scripts/check-templates.ts",
     "dev": "tsup src/cli.ts --format esm --watch",
@@ -61,6 +61,9 @@
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
+  },
+  "overrides": {
+    "tinypool": "2.1.2"
   },
   "engines": {
     "node": "^24.0.0"
