@@ -261,8 +261,8 @@ function listThemes(): string[] {
   return [...new Set(raw)].sort();
 }
 
-function validateTargetPath(projectName: string): string | undefined {
-  if (!projectName.trim()) {
+function validateTargetPath(projectName: string | undefined): string | undefined {
+  if (!projectName?.trim()) {
     return "Project name is required";
   }
 
