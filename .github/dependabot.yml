@@ -1,0 +1,34 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directories:
+  - /
+  - /templates/default
+  schedule:
+    interval: weekly
+    day: monday
+    time: 09:00
+    timezone: Asia/Tokyo
+  groups:
+    minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
+  open-pull-requests-limit: 5
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: weekly
+    day: monday
+    time: 09:00
+    timezone: Asia/Tokyo
+  groups:
+    minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
+  open-pull-requests-limit: 5
